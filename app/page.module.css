@@ -3,7 +3,7 @@
   --foreground: #d4d4d4;
 
   --text-primary: #000;
-  --text-secondary: #666;
+  --text-secondary: #444;
 
   --button-primary-hover: #383838;
   --button-secondary-hover: #f2f2f2;
@@ -22,21 +22,35 @@
 .main {
   display: flex;
   width: 50%;
+  min-width: min-content;
   height: fit-content;
   max-width: fit-content;
   flex-direction: row;
-  align-items: flex-start;
+  align-items: stretch;
   justify-content:center;
   background-color: var(--foreground);
-  padding: 120px 60px;
+  border-radius: 3vh;
+}
+
+.DivLog {
+  max-width: max-content;
+  padding: 3vw 3vw 3vw 4vw;
+  background-color: #fafafa;
+  border-radius: 2vh 0vh 0vh 2vh;
 }
 
 .welc {
   padding-top: 5vh;
 }
 
-.LogForm label {
-  font-size: small;
+.DivLog p {
+  color: #444444;
+  margin-bottom: 3vh;
+}
+
+.DivLog h2 {
+  min-width: max-content;
+  text-align: center;
 }
 
 .LogForm {
@@ -47,25 +61,38 @@
   justify-content: space-between;
 }
 
-.DivLog {
-  max-width: max-content;
-  padding: 4vw;
-  background-color: #fafafa;
-}
-
-.DivLog p {
-  color: #444444;
+.LogForm input {
+  margin-bottom: 2vh;
+  width: 20vw;
+  min-width: fit-content;
+  height: 4vh;
+  border-radius: 2vh;
+  border: 1px solid rgb(0, 140, 140);
+  padding-left: 1vh;
+  font-size: small;
 }
 
 .DivDesc {
-  max-width: fit-content;
-  padding: 4vw;
-  background-color: #0aa;
+  max-width: min-content;
+  padding: 4vw 2vw 4vw 4vw;
+  background-color: rgb(0, 140, 140);
+  border-radius: 0vh 2vh 2vh 0vh;
 }
 
 .DivDesc p {
-  max-width: 35vw;
+  min-width: 16vw;
   font-size: medium;
+  color: whitesmoke
+}
+.DivDesc p span {
+  font-weight: bold;
+}
+
+.DivDesc .copy {
+  margin-top: 2vh;
+  font-weight: bold;
+  color: whitesmoke;
+  font-size: small;
 }
 
 /* Enable hover only on non-touch devices */
@@ -78,5 +105,31 @@
 }
 
 @media (prefers-color-scheme: dark) {
-  
+  .page {
+    --background: #121212;
+    --foreground: #1a1a1a;
+
+    --text-primary: #f0f0f0;
+    --text-secondary: #bbb;
+
+    --button-primary-hover: #cfcfcf;
+    --button-secondary-hover: #2a2a2a;
+    --button-secondary-border: #333333;
+  }
+  .main {
+    background-color: #1a1a1a;
+    box-shadow: 0 0 35px rgb(0, 140, 140);
+  }
+
+  .DivLog {
+    background-color: rgb(40, 40, 40);
+  }
+  .DivLog p {
+    color: #bbbbbb;
+  }
+}
+@media (prefers-color-scheme: light) {
+  /* .main {
+    box-shadow: 0 0 35px rgb(0, 159, 159);
+  } */
 }

@@ -7,9 +7,9 @@ export default function Home() {
     <div className={styles.page}>
       <main className={styles.main}>
         <div className={styles.DivLog}>
-          <h3>
+          <h2>
             DOCS COMPILANCE
-          </h3>
+          </h2>
           <h4 className={styles.welc}>
             Welcome Back!
           </h4>
@@ -18,20 +18,17 @@ export default function Home() {
           </p>
           <div>
             <form className={styles.LogForm}>
-              <label>
-                Login
-              </label>
-              <input type="text"></input>
-              <label>
-                P@ssword
-              </label>
-              <input type="password"></input>
+              <input placeholder="Login" type="text"></input>
+              <input placeholder="P@ssword" type="password"></input>
             </form>
           </div>
         </div>
         <div className={styles.DivDesc}>
           <p>
-            Docs Compliance - kompleksowy system do zarządzania wszystkimi terminami i wymaganiami regulacyjnymi Twojej firmy
+            <span>Docs Compliance</span> - kompleksowy system do zarządzania wszystkimi terminami i wymaganiami regulacyjnymi Twojej firmy.
+          </p>
+          <p className={styles.copy}>
+            copyright © 2025 Docs Compliance
           </p>
         </div>
       </main>
