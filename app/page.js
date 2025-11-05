@@ -20,6 +20,7 @@ export default function Home() {
             <form className={styles.LogForm}>
               <input placeholder="Login" type="text"></input>
               <input placeholder="P@ssword" type="password"></input>
+              <button type="submit">Sign In</button>
             </form>
           </div>
         </div>
