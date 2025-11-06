@@ -3,14 +3,24 @@ import styles from "../styles/page.module.css";
 import Link from 'next/link';
 import { useState } from "react";
 
-export default function Login() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+export default function SignUp() {
+  const [formData, setFormData] = useState({
+    email: "",
+    name: "",
+    password: ""
+  });
+
+  const handleChange = (e) => {
+    setFormData(prev => ({
+      ...prev,
+      [e.target.name]: e.target.value
+    }));
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    // Your login logic here
-    console.log("Login attempt:", { email, password });
+    // Your signup logic here
+    console.log("Signup attempt:", formData);
   };
 
   return (
@@ -18,32 +28,42 @@ export default function Login() {
       <main className={styles.main}>
         <div className={styles.DivLog}>
           <h2>DOCS COMPLIANCE</h2>
-          <h4 className={styles.welc}>Welcome Back!</h4>
-          <p>Log in to start save your time & money.</p>
+          <h4 className={styles.welc}>Nice to meet you!</h4>
+          <p>Sign up to start save your time & money.</p>
           <div>
           <form className={styles.LogForm} onSubmit={handleSubmit}>
             <input 
               placeholder="E-mail" 
               type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              name="email"
+              value={formData.email}
+              onChange={handleChange}
+              required
+            />
+            <input 
+              placeholder="Your's name" 
+              type="text"
+              name="name"
+              value={formData.name}
+              onChange={handleChange}
               required
             />
             <input 
               placeholder="P@ssword" 
               type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              name="password"
+              value={formData.password}
+              onChange={handleChange}
               required
             />
             
             <div className={styles.formDiv}>
-              <button className={styles.sub} type="submit">Sign In</button>
+              <button className={styles.sub} type="submit">Sign Up</button>
             </div>
           </form>
           </div>
           <div className="switch-auth">
-            <p>Don't have an account? <Link href="/signup">Sign up</Link></p>
+            <p>Already have an account? <Link href="/login">Log in</Link></p>
           </div>
         </div>
         
