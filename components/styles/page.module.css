@@ -2,13 +2,6 @@
   --background: rgba(212, 212, 212, 0.2);
   --foreground: #d4d4d4;
 
-  --text-primary: #000;
-  --text-secondary: #444;
-
-  --button-primary-hover: #383838;
-  --button-secondary-hover: #f2f2f2;
-  --button-secondary-border: #ebebeb;
-
   display: flex;
   min-height: 100vh;
   min-width: 100%;
@@ -57,7 +50,7 @@
 
 .DivLog {
   max-width: max-content;
-  padding: 3vw 3vw 3vw 4vw;
+  padding: 3vw 3vw 2vw 4vw;
   background-color: #fafafa;
   border-radius: 2vh 0vh 0vh 2vh;
 }
@@ -139,13 +132,6 @@
   .page {
     --background: rgba(18, 18, 18, 0.2);
     --foreground: #1a1a1a;
-
-    --text-primary: #f0f0f0;
-    --text-secondary: #bbb;
-
-    --button-primary-hover: #cfcfcf;
-    --button-secondary-hover: #2a2a2a;
-    --button-secondary-border: #333333;
   }
   
   .main {
