@@ -4,13 +4,21 @@ import Link from 'next/link';
 import { useState } from "react";
 
 export default function Login() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [formData, setFormData] = useState({
+    email: "",
+    password: ""
+  });
+
+  const handleChange = (e) => {
+    setFormData(prev => ({
+      ...prev,
+      [e.target.name]: e.target.value
+    }));
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    // Your login logic here
-    console.log("Login attempt:", { email, password });
+    console.log("Login attempt:", formData.email, formData.password );
   };
 
   return (
@@ -25,15 +33,17 @@ export default function Login() {
             <input 
               placeholder="E-mail" 
               type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              name="email"
+              value={formData.email}
+              onChange={handleChange}
               required
             />
             <input 
               placeholder="P@ssword" 
               type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              name="password"
+              value={formData.password}
+              onChange={handleChange}
               required
             />
             

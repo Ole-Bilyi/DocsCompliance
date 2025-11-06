@@ -1,6 +1,6 @@
 :root {
   --font-color-light: whitesmoke;
-  --background: #ffffff;
+  --background: rgb(212, 212, 212);
   --foreground: #171717;
 }
 
@@ -9,27 +9,6 @@
     --background: #0a0a0a;
     --foreground: #ededed;
   }
-}
-
-html,
-body {
-  max-width: 100vw;
-  overflow-x: hidden;
-}
-
-body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  display: flex;
-}
-
-* {
-  box-sizing: border-box;
-  padding: 0;
-  margin: 0;
 }
 
 a {
@@ -41,9 +20,6 @@ a {
   html {
     color-scheme: dark;
   }
-
-  /* :root {
-  } */
 
   .page {
     --background: #121212;
@@ -81,55 +57,4 @@ a {
   html{
     background-color: var(--background);
   }
-}
-
-.MenuDiv {
-  width: 20vw;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.TopContent {
-  width: 100%;
-  padding: 2vh;
-  background-color: #0051a8;
-  border-radius: 2vh 2vh 0 0;
-  height: fit-content;
-  text-align: center;
-  justify-content:center;
-}
-
-.TopContent p {
-  font-weight: bold;
-  font-size: large;
-  color: var(--font-color-light);
-}
-
-.ButContent {
-  width: 100%;
-  height: fit-content;
-  flex-direction: column;
-  justify-content:space-between;
-  align-items: center;
-  background-color: red;
-  border-radius: 0 0 2vh 2vh;
-  padding: 3vh 3vh;
-}
-
-.ButContent button {
-  width: 100%;
-  padding: 2vh 2vw;
-  background: #0070f3;
-  color: var(--font-color-light);
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 16px;
-  transition: background 0.3s;
-  margin-top: 1vh;
-}
-
-.ButContent button:hover {
-  background: #0051a8;
 }
