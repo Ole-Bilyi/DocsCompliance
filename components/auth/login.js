@@ -3,8 +3,12 @@ import styles from "../styles/page.module.css";
 import Link from 'next/link';
 import { useState } from "react";
 import UserProfile from '../../app/session/UserProfile';
+//import { login } from "@/lib/auth";
+import { loginAction } from "@/lib/auth-action";
 
 export default function Login() {
+  const [isLoading, setIsLoading] = useState(false);
+  const [loginSuccess, setLoginSuccess] = useState(false);
 
   const [formData, setFormData] = useState({
     email: "",
@@ -18,9 +22,29 @@ export default function Login() {
     }));
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    //тут потом будет проверка попроавности данных, существует ли пользователь и тд
+  const handleLogin = async (e) => {
+    setIsLoading(true);
+    
+    try {
+      const loginData = await loginAction(formData.email, formData.password); // Your actual login function
+      setLoginSuccess(loginData.success);
+      
+      if (loginData.success) {
+        UserProfile.setEmail(formData.email);
+        UserProfile.setName(loginData.name);
+        UserProfile.setAdmin(loginData.admin);
+        UserProfile.setGName(loginData.group.group_name);
+        console.log(UserProfile.getEmail(), loginData.admin, UserProfile.getGName(), UserProfile.getName(), loginData.group.group_id);
+        window.location.href = '/mainPage';
+      } else{
+        throw new Error(loginData.error)
+      }
+    } catch (error) {
+      console.error('Login failed:', error);
+      setLoginSuccess(false);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -31,7 +55,7 @@ export default function Login() {
           <h4 className={styles.welc}>Welcome Back!</h4>
           <p>Log in to start save your time & money.</p>
           <div>
-          <form className={styles.LogForm} onSubmit={handleSubmit}>
+          <form className={styles.LogForm}>
             <div className={styles.mail} >
               <input 
                 placeholder="E-mail" 
@@ -55,9 +79,15 @@ export default function Login() {
               <img src="/icon/lock_Icon.png" alt="lock Icon" className={styles.lockIcon} />
             </div>
             <div className={styles.formDiv}>
-              <Link href="/join" onNavigate={(e) => {
-                UserProfile.setEmail(formData.email);
-              }}><button className={styles.sub} type="submit">Sign In</button></Link>
+              <Link href="/mainPage" onClick={(e) => {
+                console.log(formData.email, formData.password)
+                if (isLoading || !loginSuccess){ e.preventDefault();
+                  handleLogin()
+                }}}>
+                <button className={styles.sub} type="submit" disabled={isLoading}>
+                  {isLoading ? 'Signing In...' : 'Sign In'}
+                </button>
+              </Link>
             </div>
           </form>
           </div>

@@ -3,8 +3,13 @@ import styles from "../styles/page.module.css";
 import Link from 'next/link';
 import { useState } from "react";
 import UserProfile from '../../app/session/UserProfile';
+//import { signUp } from "@/lib/auth";
+import { signUpAction } from "@/lib/auth-action";
 
 export default function SignUp() {
+  const [isLoading, setIsLoading] = useState(false);
+  const [signUpSuccess, setSignUpSuccess] = useState(false);
+
   const [formData, setFormData] = useState({
     email: "",
     name: "",
@@ -18,8 +23,27 @@ export default function SignUp() {
     }));
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleSingUp = async (e) => {
+    setIsLoading(true);
+    
+    try {
+      const signUpData = await signUpAction(formData.name, formData.email, formData.password); // Your actual singup function
+      setSignUpSuccess(signUpData.success);
+      
+      if (signUpData.success) {
+        UserProfile.setEmail(formData.email);
+        UserProfile.setName(formData.email);
+        console.log(UserProfile.getEmail(), UserProfile.getName());
+        window.location.href = '/join';
+      } else{
+        throw new Error(signUpData.error)
+      }
+    } catch (error) {
+      console.error('Sing Up failed:', error);
+      setSignUpSuccess(false);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -30,7 +54,7 @@ export default function SignUp() {
           <h4 className={styles.welc}>Nice to meet you!</h4>
           <p>Sign up to start save your time & money.</p>
           <div>
-          <form className={styles.LogForm} onSubmit={handleSubmit}>
+          <form className={styles.LogForm}>
             <div className={styles.mail} >
               <input 
                 placeholder="E-mail" 
@@ -66,10 +90,15 @@ export default function SignUp() {
             </div>
             
             <div className={styles.formDiv}>
-              <Link href="/join" onNavigate={(e) => {
-                UserProfile.setEmail(formData.email);
-                UserProfile.setName(formData.name);
-              }}><button className={styles.sub} type="submit">Sign Up</button></Link>
+              <Link href="/join" onClick={(e) => {
+                console.log(formData.email, formData.password)
+                if (isLoading || !signUpSuccess){ e.preventDefault();
+                  handleSingUp()
+                }}}>
+                <button className={styles.sub} type="submit" disabled={isLoading}>
+                  {isLoading ? 'Signing Up...' : 'Sign Up'}
+                </button>
+              </Link>
             </div>
           </form>
           </div>

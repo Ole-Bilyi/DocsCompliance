@@ -2,6 +2,7 @@ let UserProfile = (function() {
   let user_name = "";
   let group_name = "";
   let user_email = "";
+  let admin = false;
 
   let getName = function() {
     return user_name;
@@ -9,6 +10,14 @@ let UserProfile = (function() {
 
   let setName = function(name) {
     user_name = name;
+  };
+
+  let getAdmin = function() {
+    return admin;
+  };
+
+  let setAdmin = function(admin) {
+    admin = admin;
   };
 
   let getGName = function() {
@@ -30,6 +39,8 @@ let UserProfile = (function() {
   return {
     getName: getName,
     setName: setName,
+    getAdmin: getAdmin,
+    setAdmin: setAdmin,
     getGName: getGName,
     setGName: setGName,
     getEmail: getEmail,
