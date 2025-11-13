@@ -4,10 +4,12 @@ import Link from 'next/link';
 import { useState } from "react";
 import UserProfile from '../../app/session/UserProfile';
 import { signUp } from "@/lib/auth";
+import { useRouter } from "next/navigation";
 
 export default function SignUp() {
   const [isLoading, setIsLoading] = useState(false);
   const [signUpSuccess, setSignUpSuccess] = useState(false);
+  const router = useRouter()
 
   const [formData, setFormData] = useState({
     email: "",
@@ -33,7 +35,7 @@ export default function SignUp() {
         UserProfile.setEmail(formData.email);
         UserProfile.setName(formData.name);
         console.log(UserProfile.getEmail(), UserProfile.getName());
-        window.location.href = '/join';
+        router.push('/join')
       } else{
         throw new Error(signUpData.error)
       }

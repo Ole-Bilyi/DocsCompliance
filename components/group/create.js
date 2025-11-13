@@ -5,10 +5,11 @@ import Link from 'next/link';
 import { useState } from "react";
 import UserProfile from '../../app/session/UserProfile';
 import { createGroup } from "@/lib/group";
+import { useRouter } from "next/navigation";
 
 export default function create() {
     const [group, setGroup] = useState({name: ""});
-
+    const router = useRouter();
     const handleChange = (e) => {
         setGroup(prev => ({
         ...prev,
@@ -23,7 +24,7 @@ export default function create() {
       if (createSuccess.success) {
         UserProfile.setGName(group.name);
         console.log(UserProfile.getGName())
-        window.location.href = '/mainPage';
+        router.push('/mainPage')
       } else{
         throw new Error(createSuccess.error)
       }
