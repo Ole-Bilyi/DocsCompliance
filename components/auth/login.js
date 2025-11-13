@@ -4,11 +4,12 @@ import Link from 'next/link';
 import { useState } from "react";
 import UserProfile from '../../app/session/UserProfile';
 import { login } from "@/lib/auth";
+import { useRouter } from "next/navigation";
 
 export default function Login() {
   const [isLoading, setIsLoading] = useState(false);
   const [loginSuccess, setLoginSuccess] = useState(false);
-
+  const router = useRouter();
   const [formData, setFormData] = useState({
     email: "",
     password: ""
@@ -34,7 +35,7 @@ export default function Login() {
         UserProfile.setAdmin(loginData.admin);
         UserProfile.setGName(loginData.group.group_name);
         console.log(UserProfile.getEmail(), UserProfile.getAdmin(), UserProfile.getGName(), UserProfile.getName());
-        window.location.href = '/mainPage';
+        router.push('/mainPage');
       } else{
         throw new Error(loginData.error)
       }
