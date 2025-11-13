@@ -2,7 +2,7 @@ let UserProfile = (function() {
   let user_name = "";
   let group_name = "";
   let user_email = "";
-  let admin = false;
+  let adminD = false;
 
   let getName = function() {
     return user_name;
@@ -13,11 +13,11 @@ let UserProfile = (function() {
   };
 
   let getAdmin = function() {
-    return admin;
+    return adminD;
   };
 
   let setAdmin = function(admin) {
-    admin = admin;
+    adminD = admin;
   };
 
   let getGName = function() {

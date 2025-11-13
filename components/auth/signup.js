@@ -3,8 +3,7 @@ import styles from "../styles/page.module.css";
 import Link from 'next/link';
 import { useState } from "react";
 import UserProfile from '../../app/session/UserProfile';
-//import { signUp } from "@/lib/auth";
-import { signUpAction } from "@/lib/auth-action";
+import { signUp } from "@/lib/auth";
 
 export default function SignUp() {
   const [isLoading, setIsLoading] = useState(false);
@@ -27,12 +26,12 @@ export default function SignUp() {
     setIsLoading(true);
     
     try {
-      const signUpData = await signUpAction(formData.name, formData.email, formData.password); // Your actual singup function
+      const signUpData = await signUp(formData.name, formData.email, formData.password); // Your actual singup function
       setSignUpSuccess(signUpData.success);
       
       if (signUpData.success) {
         UserProfile.setEmail(formData.email);
-        UserProfile.setName(formData.email);
+        UserProfile.setName(formData.name);
         console.log(UserProfile.getEmail(), UserProfile.getName());
         window.location.href = '/join';
       } else{

@@ -3,8 +3,7 @@ import styles from "../styles/page.module.css";
 import Link from 'next/link';
 import { useState } from "react";
 import UserProfile from '../../app/session/UserProfile';
-//import { login } from "@/lib/auth";
-import { loginAction } from "@/lib/auth-action";
+import { login } from "@/lib/auth";
 
 export default function Login() {
   const [isLoading, setIsLoading] = useState(false);
@@ -26,7 +25,7 @@ export default function Login() {
     setIsLoading(true);
     
     try {
-      const loginData = await loginAction(formData.email, formData.password); // Your actual login function
+      const loginData = await login(formData.email, formData.password); // Your actual login function
       setLoginSuccess(loginData.success);
       
       if (loginData.success) {
@@ -34,7 +33,7 @@ export default function Login() {
         UserProfile.setName(loginData.name);
         UserProfile.setAdmin(loginData.admin);
         UserProfile.setGName(loginData.group.group_name);
-        console.log(UserProfile.getEmail(), loginData.admin, UserProfile.getGName(), UserProfile.getName(), loginData.group.group_id);
+        console.log(UserProfile.getEmail(), UserProfile.getAdmin(), UserProfile.getGName(), UserProfile.getName());
         window.location.href = '/mainPage';
       } else{
         throw new Error(loginData.error)
@@ -80,7 +79,6 @@ export default function Login() {
             </div>
             <div className={styles.formDiv}>
               <Link href="/mainPage" onClick={(e) => {
-                console.log(formData.email, formData.password)
                 if (isLoading || !loginSuccess){ e.preventDefault();
                   handleLogin()
                 }}}>
