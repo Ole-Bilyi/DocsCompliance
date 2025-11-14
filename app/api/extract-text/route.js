@@ -1,28 +1,56 @@
 import { NextResponse } from 'next/server'
 import textract from 'textract'
+import PDFParse from 'pdf-parse'
 
 export async function POST(request) {
     try {
-        const { fileUrl, contId } = await request.json()
+        const { file_url, file_name, contId } = await request.json()
+        if (!file_url || !file_name || !contId) {
+            return NextResponse.json(
+                { success: false, error: 'File URL, file name and contract ID are required' }, 
+                { status: 400 }
+            )
+        }
 
-        if (!fileUrl || !contId) return NextResponse.json({ success: false, error: 'File URL and contract ID are required' }, { status: 400 }) 
+        const fileExt = file_name.split('.').pop().toLowerCase()
+        let text = ''
 
-        const text = await new Promise((resolve, reject) => {
-            textract.fromUrl(fileUrl, (error, text) => {
-                if (error) reject(error)
-                else resolve(text)
+        if (fileExt === 'pdf') {
+            // Fetch PDF and parse it properly
+            const response = await fetch(file_url)
+            const buffer = await response.arrayBuffer()
+            const data = await PDFParse(Buffer.from(buffer))
+            text = data.text
+        } else if (fileExt === 'docx' || fileExt === 'txt') {
+            // Use textract for docx and txt files
+            text = await new Promise((resolve, reject) => {
+                textract.fromUrl(file_url, (error, extractedText) => {
+                    if (error) reject(error)
+                    else resolve(extractedText)
+                })
             })
-        })
+        } else {
+            return NextResponse.json(
+                { success: false, error: `Unsupported file type: ${fileExt}` }, 
+                { status: 400 }
+            )
+        }
 
         const extractedDates = extractDatesFromText(text)
 
-        if (extractedDates.length > 0) {
-            return NextResponse.json({success:true, dates_found: extractedDates.length, extracted_dates: extractedDates, error: null})
-        }
-        
-        return NextResponse.json({success:true, dates_found: 0, extracted_dates: [], error: null})
+        return NextResponse.json({
+            success: true,
+            dates_found: extractedDates.length,
+            extracted_dates: extractedDates,
+            error: null
+        })
+
     } catch (error) {
-        return NextResponse.json({success:false, error: error.message}, { status: 500 })
+        console.error('Processing error:', error)
+        return NextResponse.json(
+            { success: false, error: error.message }, 
+            { status: 500 }
+        )
     }
 }
 
