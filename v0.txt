@@ -1,0 +1,169 @@
+layout.jsx:
+import type { Metadata } from 'next'
+import { Geist, Geist_Mono } from 'next/font/google'
+import { Analytics } from '@vercel/analytics/next'
+import './globals.css'
+
+const _geist = Geist({ subsets: ["latin"] });
+const _geistMono = Geist_Mono({ subsets: ["latin"] });
+
+export const metadata: Metadata = {
+  title: 'DOCS COMPLIANCE - Login',
+  description: 'Kompleksowy system do zarządzania wszystkimi terminami i wymaganiami regulacyjnymi Twojej firmy',
+  generator: 'v0.app',
+  icons: {
+    icon: [
+      {
+        url: '/icon-light-32x32.png',
+        media: '(prefers-color-scheme: light)',
+      },
+      {
+        url: '/icon-dark-32x32.png',
+        media: '(prefers-color-scheme: dark)',
+      },
+      {
+        url: '/icon.svg',
+        type: 'image/svg+xml',
+      },
+    ],
+    apple: '/apple-icon.png',
+  },
+}
+
+export default function RootLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode
+}>) {
+  return (
+    <html lang="en">
+      <body className={font-sans antialiased}>
+        {children}
+        <Analytics />
+      </body>
+    </html>
+  )
+}
+
+page.jsx:
+import { LoginForm } from '@/components/login-form'
+
+export default function LoginPage() {
+  return (
+    <div className="login-page">
+      {/* Left side - Login form */}
+      <div className="login-page__left">
+        <LoginForm />
+      </div>
+
+      {/* Right side - Info panel */}
+      <div className="login-page__right">
+        <div className="login-page__right-content">
+          <div>
+            <h2 className="info-panel__title">Docs Compliance</h2>
+            <p className="info-panel__description">
+              – kompleksowy system do zarządzania wszystkimi terminami i wymaganiami regulacyjnymi Twojej firmy.
+            </p>
+          </div>
+          <p className="info-panel__copyright">
+            copyright © 2025 Docs Compliance
+          </p>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+components/login-form.jsx:
+'use client'
+
+import { useState } from 'react'
+
+export function LoginForm() {
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+
+  const handleSubmit = (e) => {
+    e.preventDefault()
+    console.log('Login attempt:', { email, password })
+  }
+
+  return (
+    <div className="login-form">
+      {/* Header */}
+      <div className="login-form__header">
+        <h1 className="login-form__title">
+          DOCS COMPLIANCE
+        </h1>
+      </div>
+
+      {/* Welcome section */}
+      <div className="login-form__welcome">
+        <h2 className="login-form__welcome-heading">Welcome Back!</h2>
+        <p className="login-form__welcome-text">
+          Log in to start save your time & money.
+        </p>
+      </div>
+
+      {/* Form */}
+      <form onSubmit={handleSubmit} className="login-form__form">
+        <div className="login-form__field">
+          <label htmlFor="email" className="login-form__label">
+            E-mail
+          </label>
+          <div className="login-form__input-wrapper">
+            <input
+              id="email"
+              type="email"
+              placeholder="Enter your email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="login-form__input"
+              required
+            />
+          </div>
+        </div>
+
+        <div className="login-form__field">
+          <label htmlFor="password" className="login-form__label">
+            Password
+          </label>
+          <div className="login-form__input-wrapper">
+            <input
+              id="password"
+              type="password"
+              placeholder="Enter your password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="login-form__input"
+              required
+            />
+          </div>
+        </div>
+
+        <button type="submit" className="login-form__button">
+          Sign In
+        </button>
+      </form>
+
+      {/* Sign up link */}
+      <p className="login-form__signup">
+        {"Don't have an account? "}
+        <button
+          type="button"
+          className="login-form__signup-link"
+          onClick={() => console.log('Navigate to sign up')}
+        >
+          Sign up
+        </button>
+      </p>
+
+      {/* Mobile info - only visible on small screens */}
+      <div className="login-form__mobile-info">
+        <p className="login-form__mobile-info-text">
+          <span className="login-form__mobile-info-brand">Docs Compliance</span> – kompleksowy system do zarządzania wszystkimi terminami i wymaganiami regulacyjnymi Twojej firmy.
+        </p>
+      </div>
+    </div>
+  )
+}

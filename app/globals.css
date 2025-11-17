@@ -1,56 +1,107 @@
+/* app/globals.css — global styles and Tailwind directives */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import 'tw-animate-css';
+
 :root {
-  --font-color-light: whitesmoke;
-  --background: rgb(212, 212, 212);
-  --foreground: #171717;
-  
-    background-image: url(../public/background/bg_login.png);
-    background-size: cover;
-    background-repeat: repeat;
+  --background: #ffffff;
+  --foreground: #0b1220;
+  --card: #f8fafc;
+  --card-foreground: #0b1220;
+  --popover: #ffffff;
+  --popover-foreground: #0b1220;
+  --primary: #0b1220;
+  --primary-foreground: #ffffff;
+  --secondary: #f1f5f9;
+  --secondary-foreground: #0b1220;
+  --muted: #f3f4f6;
+  --muted-foreground: #6b7280;
+  --accent: #0b1220;
+  --accent-foreground: #ffffff;
+  --destructive: #dc2626;
+  --destructive-foreground: #ffffff;
+  --border: #e6eef0;
+  --input: #ffffff;
+  --ring: #60a5fa;
+  --radius: 0.75rem;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+.dark {
+  --background: #0b1220;
+  --foreground: #ffffff;
+  --card: #0f1724;
+  --card-foreground: #ffffff;
+  --popover: #0b1220;
+  --popover-foreground: #ffffff;
+  --primary: #000000;
+  --primary-foreground: #ffffff;
+  --secondary: #0b1220;
+  --secondary-foreground: #ffffff;
+  --muted: #0b1220;
+  --muted-foreground: #9ca3af;
+  --accent: #ffffff;
+  --accent-foreground: #0b1220;
+  --destructive: #dc2626;
+  --destructive-foreground: #ffffff;
+  --border: #1f2937;
+  --input: #0b1220;
+  --ring: #60a5fa;
+}
+
+@layer base {
+  *, *::before, *::after {
+    box-sizing: border-box;
+  }
+
+  body {
+    margin: 0;
+    background-color: var(--background);
+    color: var(--foreground);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  :focus-visible {
+    outline: 3px solid var(--ring);
+    outline-offset: 2px;
   }
 }
 
-a {
-  color: inherit;
-  text-decoration: none;
-}
+@layer components {
+  .login-page { min-height: 100vh; display: flex; }
 
-@media (prefers-color-scheme: dark) {
-  html {
-    color-scheme: dark;
-  }
+  .login-page__left { width: 100%; display: flex; align-items: center; justify-content: center; padding: 2rem; }
 
-  .page {
-    --background: #121212;
-
-    display: flex;
-    min-height: 100%;
-    min-width: 100%;
+  /* Right panel: explicit dark styling */
+  .login-page__right {
+    display: none;
+    background-color: #000000; /* solid black */
+    color: #ffffff; /* white text */
     align-items: center;
     justify-content: center;
-    background-color: var(--background);
-    font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
-  }
-}
-@media (prefers-color-scheme: light) {
-  .page {
-    --background: rgb(212, 212, 212);
-
-    display: flex;
-    min-height: 100%;
-    min-width: 100%;
-    align-items: center;
-    justify-content: center;
-    background-color: var(--background);
-    font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+    padding: 3rem;
   }
 
-  html{
-    background-color: var(--background);
+  .login-page__right-content { max-width: 28rem; display: flex; flex-direction: column; gap: 1.5rem; }
+
+  .login-form { width: 100%; max-width: 28rem; display: flex; flex-direction: column; gap: 2rem; }
+
+  .login-form__title { font-size: 3rem; font-weight: 700; }
+  .login-form__welcome-heading { font-size: 1.875rem; font-weight: 600; }
+  .login-form__welcome-text { color: var(--muted-foreground); font-size: 1.125rem; }
+
+  .login-form__input { width: 100%; height: 3rem; padding: 0.75rem 1rem; background-color: var(--input); border: 1px solid var(--border); border-radius: 0.5rem; }
+
+  .login-form__button { width: 100%; height: 3rem; background-color: var(--primary); color: var(--primary-foreground); border-radius: 0.5rem; border: none; }
+
+  .login-form__mobile-info { padding-top: 2rem; margin-top: 2rem; border-top: 1px solid var(--border); display: block; }
+
+  @media (min-width: 1024px) {
+    .login-page__left { width: 50%; }
+    .login-page__right { display: flex; width: 50%; }
+    .login-form__mobile-info { display: none; }
   }
 }

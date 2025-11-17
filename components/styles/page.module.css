@@ -1,153 +1,68 @@
+/* Minimal module styles - most styling is in globals.css */
 
-
-.page {
-  --background: rgba(212, 212, 212, 0.2);
-  --foreground: #d4d4d4;
-
-  display: flex;
-  min-height: 100vh;
-  min-width: 100%;
-  align-items: center;
-  justify-content: center;
-  background-color: var(--background);
-  font-family:'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
-  z-index: 100;
-  left: 0;
-  top: 0;
-  position: fixed;
-
-}
-
-.main {
-  display: flex;
-  width: 50%;
-  min-width: min-content;
-  height: fit-content;
-  max-width: fit-content;
-  flex-direction: row;
-  align-items: stretch;
-  justify-content:center;
-  background-color: var(--foreground);
-  border-radius: 3vh;
-  box-shadow: -0.625rem 0.625rem 0.625rem 0.0625rem rgb(0, 80, 80);
-}
-
-.DivLog {
-  max-width: max-content;
-  padding: 3vw 3vw 2vw 4vw;
-  background-color: #fafafa;
-  border-radius: 2vh 0vh 0vh 2vh;
-  border: 0.0625rem solid rgb(0, 140, 140);
-}
-
-.welc {
-  padding-top: 5vh;
-}
-
-.DivLog p {
-  color: #444444;
-  margin-bottom: 3vh;
-}
-
-.DivLog h2 {
-  min-width: max-content;
-  text-align: center;
-}
-
-.LogForm {
-  margin-top: 2vh;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  justify-content: space-between;
-}
-
-.LogForm input {
-  margin-bottom: 2vh;
-  width: 20vw;
-  min-width: fit-content;
-  height: 4vh;
-  border-radius: 2vh;
-  border: 0.0625rem solid rgb(0, 140, 140);
-  padding-left: 1vh;
-  font-size: small;
-  transition: all 0.3s ease;
-}
-
-.formDiv {
-  width: 20vw;
-  display: flex;
-  justify-content: center;
-  gap: 2vw;
-}
-
-.DivDesc {
-  max-width: min-content;
-  padding: 4vw 2vw 4vw 4vw;
-  background-color: rgb(0, 140, 140);
-  border-radius: 0vh 2vh 2vh 0vh;
-}
-
-.DivDesc p {
-  min-width: 16vw;
-  font-size: medium;
-  color: whitesmoke
-}
-
-.DivDesc p span {
-  font-weight: bold;
-}
-
-.DivDesc .copy {
-  margin-top: 2vh;
-  font-weight: bold;
-  color: whitesmoke;
-  font-size: small;
-}
-
+/* Legacy support for signup/login form icons */
 .mail {
   position: relative;
   display: inline-block;
+  width: 100%;
 }
 
 .mailIcon {
-    position: absolute;
-    right: 0.8rem;
-    top: 20%;
-    pointer-events: none;
-    width: 1.1rem;
+  position: absolute;
+  right: 0.8rem;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  width: 1.1rem;
+  height: auto;
 }
 
 .Uname {
   position: relative;
   display: inline-block;
+  width: 100%;
 }
 
 .penIcon {
-    position: absolute;
-    right: 0.8rem;
-    top: 20%;
-    pointer-events: none;
-    width: 1.1rem;
+  position: absolute;
+  right: 0.8rem;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  width: 1.1rem;
+  height: auto;
 }
 
 .pass {
   position: relative;
   display: inline-block;
+  width: 100%;
 }
 
 .lockIcon {
-    position: absolute;
-    right: 0.8rem;
-    top: 20%;
-    pointer-events: none;
-    width: 1.1rem;
+  position: absolute;
+  right: 0.8rem;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  width: 1.1rem;
+  height: auto;
 }
 
-/* Enable hover only on non-touch devices */
-@media (hover: hover) and (pointer: fine) {
-  
+/* Animation */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
+
+.fadeIn {
+  animation: fadeIn 0.3s ease-in;
+}
+
 
 @media (max-width: 750px) {
   
