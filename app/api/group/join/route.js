@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
-import { joinGroup } from '../../../../lib/group'
-import { getUser } from '../../../../lib/auth'
+import { joinGroup } from '@/lib/group'
+import { getUser } from '@/lib/auth'
 
 export async function POST(request) {
   try {
