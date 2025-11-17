@@ -1,0 +1,246 @@
+.settings {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  color: var(--foreground);
+}
+
+.settings__hero {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1.25rem;
+  padding: 1.75rem;
+  border-radius: 1.5rem;
+  background: linear-gradient(135deg, rgba(14, 165, 233, 0.12), rgba(59, 130, 246, 0.12));
+  border: 1px solid rgba(59, 130, 246, 0.25);
+
+  h2 {
+    margin: 0.25rem 0;
+    font-size: clamp(1.8rem, 3vw, 2.3rem);
+  }
+
+  p {
+    margin: 0;
+    color: var(--muted-foreground);
+    max-width: 32rem;
+  }
+}
+
+.settings__eyebrow {
+  text-transform: uppercase;
+  letter-spacing: 0.3em;
+  font-size: 0.7rem;
+  color: var(--muted-foreground);
+  margin: 0;
+}
+
+.settings__summary {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 0.15rem;
+  color: var(--foreground);
+
+  small {
+    color: var(--muted-foreground);
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    font-size: 0.65rem;
+  }
+}
+
+.settings__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1.25rem;
+}
+
+.settings-card {
+  border-radius: 1.25rem;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  padding: 1.4rem;
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(18px);
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+
+  header {
+    h3 {
+      margin: 0 0 0.35rem;
+    }
+
+    p {
+      margin: 0;
+      color: var(--muted-foreground);
+    }
+  }
+}
+
+.settings-card__options {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.option {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.85rem 1rem;
+  border-radius: 1rem;
+  border: 1px solid rgba(15, 23, 42, 0.1);
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+
+  input {
+    accent-color: #2563eb;
+  }
+
+  span {
+    text-transform: capitalize;
+    font-weight: 600;
+  }
+
+  &.is-active {
+    border-color: rgba(37, 99, 235, 0.7);
+    background: rgba(37, 99, 235, 0.08);
+  }
+}
+
+.toggle-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+
+  li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  strong {
+    display: block;
+  }
+
+  span {
+    color: var(--muted-foreground);
+    font-size: 0.85rem;
+  }
+}
+
+.toggle {
+  width: 3rem;
+  height: 1.6rem;
+  border-radius: 1rem;
+  border: none;
+  background: rgba(148, 163, 184, 0.45);
+  position: relative;
+  cursor: pointer;
+  transition: background 0.2s;
+
+  span {
+    position: absolute;
+    width: 1.2rem;
+    height: 1.2rem;
+    border-radius: 50%;
+    background: white;
+    top: 50%;
+    left: 0.2rem;
+    transform: translateY(-50%);
+    transition: transform 0.2s;
+  }
+
+  &.is-on {
+    background: #22c55e;
+
+    span {
+      transform: translate(1.2rem, -50%);
+    }
+  }
+}
+
+.select {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+
+  span {
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    font-size: 0.7rem;
+    color: var(--muted-foreground);
+  }
+
+  select {
+    padding: 0.75rem 1rem;
+    border-radius: 0.9rem;
+    border: 1px solid rgba(15, 23, 42, 0.1);
+    font-size: 1rem;
+  }
+}
+
+.settings-card--danger {
+  background: rgba(239, 68, 68, 0.08);
+  border-color: rgba(239, 68, 68, 0.35);
+
+  .danger {
+    padding: 0.9rem 1.2rem;
+    border-radius: 1rem;
+    border: none;
+    background: #ef4444;
+    color: white;
+    font-weight: 600;
+    cursor: pointer;
+  }
+}
+
+.settings__actions {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.settings__actions .primary {
+  padding: 0.9rem 1.6rem;
+  border-radius: 1rem;
+  border: none;
+  background: linear-gradient(120deg, #2563eb, #7c3aed);
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.settings__message {
+  color: #16a34a;
+  font-weight: 600;
+}
+
+@media (prefers-color-scheme: dark) {
+  .settings-card {
+    background: rgba(15, 23, 42, 0.85);
+    border-color: rgba(148, 163, 184, 0.2);
+  }
+
+  .option {
+    border-color: rgba(148, 163, 184, 0.2);
+
+    &.is-active {
+      background: rgba(59, 130, 246, 0.18);
+    }
+  }
+
+  .settings-card--danger {
+    background: rgba(239, 68, 68, 0.12);
+    border-color: rgba(239, 68, 68, 0.45);
+  }
+}
+

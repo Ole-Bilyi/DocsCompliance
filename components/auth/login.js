@@ -60,102 +60,85 @@ export default function Login() {
   }
 
   return (
-    <div className="login-page">
-      {/* Left side - Login form */}
-      <div className="login-page__left">
-        <form className="login-form" onSubmit={handleSubmit} aria-live="polite">
-          {/* Header */}
-          <div className="login-form__header">
-            <h1 className="login-form__title">DOCS COMPLIANCE</h1>
+    <div className="auth-page">
+      <section className="auth-hero">
+        <p className="auth-hero__eyebrow">Docs Compliance</p>
+        <h1>Stay ahead of every approval and renewal</h1>
+        <p>
+          Docs Compliance orchestrates reminders, consent workflows, and clause reviews so your
+          legal team can focus on the decisions that matter—not the busywork.
+        </p>
+        <p>
+          Pick up exactly where you left off. Your queue, pending signatures, and expiring contracts
+          are synced across all your devices.
+        </p>
+        <ul className="auth-hero__list">
+          <li>Automated nudges for expirations and reviews</li>
+          <li>Privacy-ready storage with full audit trails</li>
+          <li>Instant visibility into every team member’s workload</li>
+        </ul>
+        <div className="auth-hero__meta">
+          <span>All data encrypted at rest</span>
+          <span>Trusted by legal & compliance teams</span>
+          <span>99.9% uptime SLA</span>
+        </div>
+      </section>
+
+      <section className="auth-card">
+        <header className="auth-card__header">
+          <p className="auth-card__kicker">Sign in</p>
+          <h2>Welcome back</h2>
+          <p>Enter your credentials to reach your Docs Compliance dashboard.</p>
+        </header>
+
+        <form className="auth-form" onSubmit={handleSubmit} aria-live="polite">
+          <div className="auth-form__field">
+            <label htmlFor="email">E-mail</label>
+            <input
+              id="email"
+              type="email"
+              name="email"
+              placeholder="you@company.com"
+              value={formData.email}
+              onChange={handleChange}
+              required
+              aria-required="true"
+              aria-invalid={errorMsg ? 'true' : 'false'}
+            />
           </div>
 
-          {/* Welcome section */}
-          <div className="login-form__welcome">
-            <h2 className="login-form__welcome-heading">Welcome Back!</h2>
-            <p className="login-form__welcome-text">Log in to start save your time & money.</p>
+          <div className="auth-form__field">
+            <label htmlFor="password">Password</label>
+            <input
+              id="password"
+              type="password"
+              name="password"
+              placeholder="••••••••"
+              value={formData.password}
+              onChange={handleChange}
+              required
+              aria-required="true"
+              aria-invalid={errorMsg ? 'true' : 'false'}
+            />
           </div>
 
-          {/* Form fields */}
-          <div className="login-form__form">
-            <div className="login-form__field">
-              <label htmlFor="email" className="login-form__label">E-mail</label>
-              <div className="login-form__input-wrapper">
-                <input
-                  id="email"
-                  type="email"
-                  name="email"
-                  placeholder="Enter your email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  className="login-form__input"
-                  required
-                  aria-required="true"
-                  aria-invalid={errorMsg ? 'true' : 'false'}
-                />
-              </div>
-            </div>
-
-            <div className="login-form__field">
-              <label htmlFor="password" className="login-form__label">Password</label>
-              <div className="login-form__input-wrapper">
-                <input
-                  id="password"
-                  type="password"
-                  name="password"
-                  placeholder="Enter your password"
-                  value={formData.password}
-                  onChange={handleChange}
-                  className="login-form__input"
-                  required
-                  aria-required="true"
-                  aria-invalid={errorMsg ? 'true' : 'false'}
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Error message */}
           {errorMsg && (
-            <div role="alert" style={{ color: 'var(--color-destructive)', marginTop: '10px', fontSize: '14px' }}>
+            <div role="alert" className="auth-form__status">
               {errorMsg}
             </div>
           )}
 
-          {/* Sign In button */}
-          <button type="submit" className="login-form__button" disabled={isLoading}>
-            {isLoading ? 'Signing In...' : 'Sign In'}
-          </button>
-
-          {/* Sign up link */}
-          <p className="login-form__signup">
-            Don't have an account?{' '}
-            <Link href="/signup" className="login-form__signup-link">
-              Sign up
-            </Link>
-          </p>
-
-          {/* Mobile info - only visible on small screens */}
-          <div className="login-form__mobile-info">
-            <p className="login-form__mobile-info-text">
-              <span className="login-form__mobile-info-brand">Docs Compliance</span> – kompleksowy system do
-              zarządzania wszystkimi terminami i wymaganiami regulacyjnymi Twojej firmy.
-            </p>
+          <div className="auth-form__actions">
+            <button type="submit" disabled={isLoading}>
+              {isLoading ? 'Signing in…' : 'Sign in'}
+            </button>
           </div>
         </form>
-      </div>
 
-      {/* Right side - Info panel */}
-      <div className="login-page__right" style={{ backgroundColor: '#000000', color: '#ffffff' }}>
-        <div className="login-page__right-content">
-          <div>
-            <h2 className="info-panel__title">Docs Compliance</h2>
-            <p className="info-panel__description">
-              – kompleksowy system do zarządzania wszystkimi terminami i wymaganiami regulacyjnymi Twojej firmy.
-            </p>
-          </div>
-          <p className="info-panel__copyright">copyright © 2025 Docs Compliance</p>
-        </div>
-      </div>
+        <p className="auth-card__switch">
+          Don&apos;t have an account? <Link href="/signup">Create one</Link>
+        </p>
+      </section>
     </div>
   )
 }

@@ -62,120 +62,100 @@ export default function SignUp() {
   }
 
   return (
-    <div className="login-page">
-      {/* Left side - Signup form */}
-      <div className="login-page__left">
-        <form className="login-form" onSubmit={handleSubmit} aria-live="polite">
-          {/* Header */}
-          <div className="login-form__header">
-            <h1 className="login-form__title">DOCS COMPLIANCE</h1>
+    <div className="auth-page">
+      <section className="auth-hero">
+        <p className="auth-hero__eyebrow">Docs Compliance</p>
+        <h1>Launch a secure workspace for every stakeholder</h1>
+        <p>
+          Spin up a shared environment where procurement, legal, finance, and outside partners can
+          collaborate without losing the paper trail.
+        </p>
+        <p>
+          We guide you through setting roles, invite flows, and review reminders so your team is
+          productive on day one.
+        </p>
+        <ul className="auth-hero__list">
+          <li>Unlimited groups and granular permissions</li>
+          <li>Built-in NDA + contract templates ready to customize</li>
+          <li>Real-time dashboards for expirations and approvals</li>
+        </ul>
+        <div className="auth-hero__meta">
+          <span>Unlimited groups</span>
+          <span>Role-based access</span>
+          <span>Onboarding support included</span>
+        </div>
+      </section>
+
+      <section className="auth-card">
+        <header className="auth-card__header">
+          <p className="auth-card__kicker">Create account</p>
+          <h2>Let&apos;s get started</h2>
+          <p>Tell us who you are so we can prepare your workspace.</p>
+        </header>
+
+        <form className="auth-form" onSubmit={handleSubmit} aria-live="polite">
+          <div className="auth-form__field">
+            <label htmlFor="name">Your name</label>
+            <input
+              id="name"
+              type="text"
+              name="name"
+              placeholder="Taylor Jenkins"
+              value={formData.name}
+              onChange={handleChange}
+              required
+              aria-required="true"
+              aria-invalid={errorMsg ? 'true' : 'false'}
+            />
           </div>
 
-          {/* Welcome section */}
-          <div className="login-form__welcome">
-            <h2 className="login-form__welcome-heading">Nice to meet you!</h2>
-            <p className="login-form__welcome-text">Sign up to start save your time & money.</p>
+          <div className="auth-form__field">
+            <label htmlFor="email">E-mail</label>
+            <input
+              id="email"
+              type="email"
+              name="email"
+              placeholder="you@company.com"
+              value={formData.email}
+              onChange={handleChange}
+              required
+              aria-required="true"
+              aria-invalid={errorMsg ? 'true' : 'false'}
+            />
           </div>
 
-          {/* Form fields */}
-          <div className="login-form__form">
-            <div className="login-form__field">
-              <label htmlFor="email" className="login-form__label">E-mail</label>
-              <div className="login-form__input-wrapper">
-                <input
-                  id="email"
-                  type="email"
-                  name="email"
-                  placeholder="Enter your email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  className="login-form__input"
-                  required
-                  aria-required="true"
-                  aria-invalid={errorMsg ? 'true' : 'false'}
-                />
-              </div>
-            </div>
-
-            <div className="login-form__field">
-              <label htmlFor="name" className="login-form__label">Your Name</label>
-              <div className="login-form__input-wrapper">
-                <input
-                  id="name"
-                  type="text"
-                  name="name"
-                  placeholder="Enter your name"
-                  value={formData.name}
-                  onChange={handleChange}
-                  className="login-form__input"
-                  required
-                  aria-required="true"
-                  aria-invalid={errorMsg ? 'true' : 'false'}
-                />
-              </div>
-            </div>
-
-            <div className="login-form__field">
-              <label htmlFor="password" className="login-form__label">Password</label>
-              <div className="login-form__input-wrapper">
-                <input
-                  id="password"
-                  type="password"
-                  name="password"
-                  placeholder="Enter your password"
-                  value={formData.password}
-                  onChange={handleChange}
-                  className="login-form__input"
-                  required
-                  aria-required="true"
-                  aria-invalid={errorMsg ? 'true' : 'false'}
-                />
-              </div>
-            </div>
+          <div className="auth-form__field">
+            <label htmlFor="password">Password</label>
+            <input
+              id="password"
+              type="password"
+              name="password"
+              placeholder="At least 6 characters"
+              value={formData.password}
+              onChange={handleChange}
+              required
+              aria-required="true"
+              aria-invalid={errorMsg ? 'true' : 'false'}
+            />
           </div>
 
-          {/* Error message */}
           {errorMsg && (
-            <div role="alert" style={{ color: 'var(--color-destructive)', marginTop: '10px', fontSize: '14px' }}>
+            <div role="alert" className="auth-form__status">
               {errorMsg}
             </div>
           )}
 
-          {/* Sign Up button */}
-          <button type="submit" className="login-form__button" disabled={isLoading}>
-            {isLoading ? 'Signing Up...' : 'Sign Up'}
-          </button>
-
-          {/* Login link */}
-          <p className="login-form__signup">
-            Already have an account?{' '}
-            <Link href="/login" className="login-form__signup-link">
-              Log in
-            </Link>
-          </p>
-
-          {/* Mobile info - only visible on small screens */}
-          <div className="login-form__mobile-info">
-            <p className="login-form__mobile-info-text">
-              <span className="login-form__mobile-info-brand">Docs Compliance</span> – kompleksowy system do
-              zarządzania wszystkimi terminami i wymaganiami regulacyjnymi Twojej firmy.
-            </p>
+          <div className="auth-form__actions">
+            <button type="submit" disabled={isLoading}>
+              {isLoading ? 'Creating account…' : 'Sign up'}
+            </button>
           </div>
         </form>
-      </div>
 
-      {/* Right side - Info panel */}
-      <div className="login-page__right" style={{ backgroundColor: '#000000', color: '#ffffff' }}>
-        <div className="login-page__right-content">
-          <div>
-            <h2 className="info-panel__title">Docs Compliance</h2>
-            <p className="info-panel__description">
-              – kompleksowy system do zarządzania wszystkimi terminami i wymaganiami regulacyjnymi Twojej firmy.
-            </p>
-          </div>
-          <p className="info-panel__copyright">copyright © 2025 Docs Compliance</p>
-        </div>
-      </div>
+        <p className="auth-card__switch">
+          Already have an account? <Link href="/login">Log in</Link>
+        </p>
+      </section>
     </div>
   )
 }

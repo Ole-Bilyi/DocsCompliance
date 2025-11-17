@@ -1,15 +1,24 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
-import { useRouter } from 'next/navigation';
+import React, { useEffect, useMemo, useState } from "react";
+import { useRouter, usePathname } from 'next/navigation';
 import UserProfile from '../../app/session/UserProfile';
 import Link from 'next/link';
 import "../styles/MainLayout.scss";
 // import { getGroup } from "../api/group";
 
-const MainLayout = ({ children, userEmail }) => {
+const navLinks = [
+  { href: "/mainPage", label: "Dashboard" },
+  { href: "/userProfile", label: "Profile" },
+  { href: "/group", label: "Group" },
+  { href: "/settings", label: "Settings" },
+];
+
+const MainLayout = ({ children }) => {
   const router = useRouter();
+  const pathname = usePathname();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isDesktop, setIsDesktop] = useState(false);
 
   // Centralized auth check for pages that use MainLayout
   useEffect(() => {
@@ -46,31 +55,125 @@ const MainLayout = ({ children, userEmail }) => {
     checkAuth();
   }, [router]);
 
+  const displayName = useMemo(() => {
+    return UserProfile.getName() || UserProfile.getEmail() || "Loading…";
+  }, []);
+
+  const groupName = useMemo(() => {
+    return UserProfile.getGName() || "Workspace";
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const mq = window.matchMedia("(min-width: 1024px)");
+    const syncSidebar = (event) => {
+      const matches = event?.matches ?? mq.matches;
+      setIsDesktop(matches);
+      setIsSidebarOpen(matches);
+    };
+
+    syncSidebar();
+    mq.addEventListener("change", syncSidebar);
+    return () => mq.removeEventListener("change", syncSidebar);
+  }, []);
+
+  const handleSignOut = () => {
+    UserProfile.setEmail("");
+    UserProfile.setName("");
+    UserProfile.setGName("");
+    router.push("/login");
+  };
+
+  const toggleSidebar = () => {
+    if (isDesktop) return;
+    setIsSidebarOpen((prev) => !prev);
+  };
+
+  const collapseSidebarOnMobile = () => {
+    if (isDesktop) return;
+    setIsSidebarOpen(false);
+  };
+
   return (
-    <div className="layout">
-      <header className="topbar">
+    <div className={`layout ${isSidebarOpen && !isDesktop ? "layout--sidebar-open" : ""}`}>
+      <aside className={`sidebar ${isSidebarOpen ? "sidebar--open" : ""}${isDesktop ? " sidebar--desktop" : ""}`}>
+        <div className="sidebar__brand">
+          <span className="sidebar__logo">DC</span>
+          <div>
+            <p className="sidebar__eyebrow">DocsCompliance</p>
+            <h2>{groupName}</h2>
+          </div>
+        </div>
+
+        <nav className="sidebar__nav">
+          {navLinks.map(({ href, label }) => {
+            const isActive = pathname?.startsWith(href);
+            return (
+              <Link
+                key={href}
+                href={href}
+                className={`sidebar__link ${isActive ? "is-active" : ""}`}
+                aria-current={isActive ? "page" : undefined}
+                onClick={collapseSidebarOnMobile}
+              >
+                {label}
+              </Link>
+            );
+          })}
+        </nav>
+
+        <div className="sidebar__footer">
+          <button type="button" className="sidebar__logout" onClick={handleSignOut}>
+            Sign out
+          </button>
+        </div>
+      </aside>
+
+      {!isDesktop && isSidebarOpen && (
         <button
-          className="menu-button"
-          onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-        >
-          {isSidebarOpen ? "Close" : "Menu"}
-        </button>
-        <h1 className="app-title">{UserProfile.getGName() || "Loading..."}</h1>
-      </header>
+          type="button"
+          className="layout__backdrop"
+          aria-label="Close navigation overlay"
+          onClick={collapseSidebarOnMobile}
+        />
+      )}
 
-      <div className="body">
-        <aside className={`sidebar ${isSidebarOpen ? "open" : ""}`}>
-          <nav>
-            <Link href="/mainPage"><p>Dashboard</p></Link>
-            <Link href="/userProfile"><p>{UserProfile.getName() || UserProfile.getEmail()}'s Profile</p></Link>
-            <Link href="/group"><p>Group</p></Link>
-            <Link href="/settings"><p>Settings</p></Link>
-          </nav>
-        </aside>
+      <div className="layout__main">
+        <header className="topbar">
+          <button
+            type="button"
+            className="menu-button"
+            onClick={toggleSidebar}
+            aria-label={isSidebarOpen ? "Collapse navigation" : "Expand navigation"}
+          >
+            <span />
+            <span />
+            <span />
+          </button>
 
-        <main className="content">
-          {children}
-        </main>
+          <div className="topbar__breadcrumbs">
+            <p className="topbar__eyebrow">Workspace overview</p>
+            <h1>{groupName}</h1>
+          </div>
+
+          <div className="topbar__user">
+            <div className="topbar__user-meta">
+              <span className="topbar__user-label">Signed in as</span>
+              <strong>{displayName}</strong>
+            </div>
+            <div className="topbar__avatar">
+              {displayName
+                .split(" ")
+                .map((chunk) => chunk[0])
+                .join("")
+                .slice(0, 2)
+                .toUpperCase()}
+            </div>
+          </div>
+        </header>
+
+        <main className="content">{children}</main>
       </div>
     </div>
   );
