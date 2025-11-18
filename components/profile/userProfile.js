@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo } from "react";
+import React, { useState, useEffect } from "react";
 import "../styles/ProfileCard.scss";
 import UserProfile from "../../app/session/UserProfile";
 
@@ -11,9 +11,34 @@ const activity = [
 ];
 
 export default function UserProfileCard() {
-  const name = useMemo(() => UserProfile.getName() || "Unnamed member", []);
-  const email = useMemo(() => UserProfile.getEmail() || "no-email@unknown.com", []);
-  const groupName = useMemo(() => UserProfile.getGName() || "No group assigned", []);
+  const [name, setName] = useState("Unnamed member");
+  const [email, setEmail] = useState("no-email@unknown.com");
+  const [groupName, setGroupName] = useState("No group assigned");
+
+  useEffect(() => {
+    const updateProfile = () => {
+      setName(UserProfile.getName() || "Unnamed member");
+      setEmail(UserProfile.getEmail() || "no-email@unknown.com");
+      setGroupName(UserProfile.getGName() || "No group assigned");
+    };
+
+    // Initial update
+    updateProfile();
+
+    // Listen for storage changes (when session is restored in another tab)
+    const handleStorageChange = () => {
+      updateProfile();
+    };
+    window.addEventListener('storage', handleStorageChange);
+
+    // Set up interval to check for profile changes (for when session is restored)
+    const interval = setInterval(updateProfile, 500);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('storage', handleStorageChange);
+    };
+  }, []);
 
   const initials = name
     .split(" ")
@@ -24,9 +49,7 @@ export default function UserProfileCard() {
     .toUpperCase() || "DC";
 
   const handleLogout = () => {
-    UserProfile.setEmail("");
-    UserProfile.setName("");
-    UserProfile.setGName("");
+    UserProfile.clearSession();
     window.location.href = "/login";
   };
 

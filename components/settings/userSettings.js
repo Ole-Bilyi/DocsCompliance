@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import "../styles/Settings.scss";
 import UserProfile from "../../app/session/UserProfile";
 
@@ -16,6 +16,30 @@ export default function UserSettings() {
   const [timezone, setTimezone] = useState("UTC");
   const [toggles, setToggles] = useState(defaultToggles);
   const [message, setMessage] = useState(null);
+  const [displayName, setDisplayName] = useState("your account");
+
+  useEffect(() => {
+    const updateProfile = () => {
+      setDisplayName(UserProfile.getName() || UserProfile.getEmail() || "your account");
+    };
+
+    // Initial update
+    updateProfile();
+
+    // Listen for storage changes (when session is restored in another tab)
+    const handleStorageChange = () => {
+      updateProfile();
+    };
+    window.addEventListener('storage', handleStorageChange);
+
+    // Set up interval to check for profile changes (for when session is restored)
+    const interval = setInterval(updateProfile, 500);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('storage', handleStorageChange);
+    };
+  }, []);
 
   const handleToggle = (key) => {
     setToggles((prev) => ({ ...prev, [key]: !prev[key] }));
@@ -26,8 +50,6 @@ export default function UserSettings() {
     setMessage("Preferences updated");
     setTimeout(() => setMessage(null), 2000);
   };
-
-  const displayName = UserProfile.getName() || UserProfile.getEmail() || "your account";
 
   return (
     <section className="settings">
@@ -118,9 +140,7 @@ export default function UserSettings() {
             type="button"
             className="danger"
             onClick={() => {
-              UserProfile.setEmail("");
-              UserProfile.setName("");
-              UserProfile.setGName("");
+              UserProfile.clearSession();
               setMessage("Local profile cleared");
             }}
           >
