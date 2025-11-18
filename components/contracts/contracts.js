@@ -212,14 +212,14 @@ export default function Contracts() {
                 </div>
               ))}
               <div style={{display:'flex',gap:8,marginTop:8}}>
-                <button type="button" className="btn" onClick={addMilestone}>Add milestone</button>
+                <button type="button" className="btn primary" onClick={addMilestone}>Add milestone</button>
                 <div className="muted" style={{alignSelf:'center'}}>Optional reminders or important dates</div>
               </div>
 
               {error && <div className="formError">{error}</div>}
 
               <div className="modalFooter">
-                <button className="btn" type="button" onClick={() => setShowUpload(false)} disabled={uploading}>Cancel</button>
+                <button className="btn primary" type="button" onClick={() => setShowUpload(false)} disabled={uploading}>Cancel</button>
                 <button className="btn primary" type="submit" disabled={uploading}>{uploading ? 'Uploading…' : 'Upload'}</button>
               </div>
             </form>
