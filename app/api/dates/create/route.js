@@ -12,7 +12,7 @@ export async function POST(request) {
 
     // Verify user is authenticated
     const userData = await getUser(email)
-    if (!userData.success) {
+    if (!userData.success || (!userData.data.admin && date.assigned_to!=email)) {
       return NextResponse.json({ success: false, error: 'User not found' }, { status: 401 })
     }
 
