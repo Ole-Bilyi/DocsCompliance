@@ -1,22 +1,23 @@
 import { NextResponse } from 'next/server'
 import { updateDate } from '../../../../lib/dates'
-import { getUser } from '../../../../lib/auth'
+import { getSession } from '@/lib/session'
 
 export async function POST(request) {
   try {
-    const { email, date_id, update } = await request.json()
+    const session = await getSession();
+    const user = session.user;
+
+    if (!user || !user.isLoggedIn) {
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const { date_id, update } = await request.json()
     
-    if (!email || !date_id || !update) {
-      return NextResponse.json({ success: false, error: 'Email, date_id, and update object are required' }, { status: 400 })
+    if (!date_id || !update) {
+      return NextResponse.json({ success: false, error: 'date_id and update object are required' }, { status: 400 })
     }
 
-    // Verify user is authenticated
-    const userData = await getUser(email)
-    if (!userData.success) {
-      return NextResponse.json({ success: false, error: 'User not found' }, { status: 401 })
-    }
-
-    const result = await updateDate(email, date_id, update)
+    const result = await updateDate(user.email, date_id, update)
     return NextResponse.json(result)
   } catch (error) {
     console.error('updateDate error:', error)

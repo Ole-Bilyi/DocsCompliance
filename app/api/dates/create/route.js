@@ -1,19 +1,24 @@
 import { NextResponse } from 'next/server'
 import { createDate } from '../../../../lib/dates'
-import { getUser } from '../../../../lib/auth'
+import { getSession } from '@/lib/session'
 
 export async function POST(request) {
   try {
-    const { email, date } = await request.json()
-    
-    if (!email || !date) {
-      return NextResponse.json({ success: false, error: 'Email and date object are required' }, { status: 400 })
+    const session = await getSession();
+    const user = session.user;
+
+    if (!user || !user.isLoggedIn) {
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Verify user is authenticated
-    const userData = await getUser(email)
-    if (!userData.success || (!userData.data.admin && date.assigned_to!=email)) {
-      return NextResponse.json({ success: false, error: 'User not found' }, { status: 401 })
+    const { date } = await request.json()
+    
+    if (!date) {
+      return NextResponse.json({ success: false, error: 'Date object is required' }, { status: 400 })
+    }
+
+    if (!user.admin && date.assigned_to !== user.email) {
+      return NextResponse.json({ success: false, error: 'Permission denied' }, { status: 403 });
     }
 
     const result = await createDate(date)

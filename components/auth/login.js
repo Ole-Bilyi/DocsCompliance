@@ -43,14 +43,8 @@ export default function Login() {
       if (!loginData.success) {
         throw new Error(loginData.error || 'Login failed')
       }
-
-      const { name, admin, group } = loginData.data
-      UserProfile.setProfile({
-        email: formData.email,
-        name: name,
-        admin: admin,
-        groupName: group?.group_name || null
-      })
+      
+      await UserProfile.syncWithServer()
 
       router.push('/mainPage')
     } catch (error) {

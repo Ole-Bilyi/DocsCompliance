@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { login } from '@/lib/auth'
+import { getSession } from '@/lib/session'
 
 export async function POST(request) {
   try {
@@ -15,13 +16,18 @@ export async function POST(request) {
       return NextResponse.json({ success: false, error: 'Invalid email or password' }, { status: 401 })
     }
 
+    const session = await getSession();
+    session.user = {
+      isLoggedIn: true,
+      email: email,
+      name: result.name,
+      admin: result.admin,
+      group: result.group,
+    };
+    await session.save();
+
     return NextResponse.json({ 
-      success: true, 
-      data: {
-        name: result.name,
-        admin: result.admin,
-        group: result.group
-      }
+      success: true,
     })
   } catch (error) {
     console.error('Login API error:', error)

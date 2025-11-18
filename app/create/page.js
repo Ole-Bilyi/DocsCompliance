@@ -1,3 +1,4 @@
+// app/create/page.js
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -11,19 +12,16 @@ export default function CreatePage() {
 
   useEffect(() => {
     const checkAuth = async () => {
-      // First, try to restore session from server if email exists in localStorage
-      const email = UserProfile.getEmail();
-      if (email) {
-        await UserProfile.restoreFromServer();
-      }
-
-      const currentEmail = UserProfile.getEmail();
-      if (!currentEmail) {
-        router.push('/login');
-        return;
-      }
-
       try {
+        // Use syncWithServer instead of restoreFromServer
+        await UserProfile.syncWithServer()
+
+        const currentEmail = UserProfile.getEmail();
+        if (!currentEmail) {
+          router.push('/login');
+          return;
+        }
+
         const res = await fetch('/api/auth/check', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -37,7 +35,7 @@ export default function CreatePage() {
           return;
         }
 
-        // Allow create page for authenticated users (they haven't created/joined a group yet)
+        // Allow create page for authenticated users
         setIsAuthorized(true);
       } catch (error) {
         console.error('Auth check failed:', error);

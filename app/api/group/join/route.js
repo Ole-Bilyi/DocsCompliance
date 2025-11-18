@@ -1,21 +1,22 @@
 import { NextResponse } from 'next/server'
 import { joinGroup } from '@/lib/group'
-import { getUser } from '@/lib/auth'
+import { getSession } from '@/lib/session'
 
 export async function POST(request) {
   try {
-    const { userEmail, adminEmail } = await request.json()
-    if (!userEmail || !adminEmail) {
-      return NextResponse.json({ success: false, error: 'userEmail and adminEmail are required' }, { status: 400 })
+    const session = await getSession();
+    const user = session.user;
+
+    if (!user || !user.isLoggedIn) {
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Validate that the user exists and is authenticated (server-side verification)
-    const userData = await getUser(userEmail)
-    if (!userData.success) {
-      return NextResponse.json({ success: false, error: 'User not found' }, { status: 401 })
+    const { adminEmail } = await request.json()
+    if (!adminEmail) {
+      return NextResponse.json({ success: false, error: 'adminEmail is required' }, { status: 400 })
     }
 
-    const result = await joinGroup(userEmail, adminEmail)
+    const result = await joinGroup(user.email, adminEmail)
     return NextResponse.json(result)
   } catch (error) {
     console.error('joinGroup error:', error)

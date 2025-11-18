@@ -1,21 +1,22 @@
 import { NextResponse } from 'next/server'
 import { requestsConsent } from '@/lib/group'
-import { getUser } from '@/lib/auth'
+import { getSession } from '@/lib/session'
 
 export async function POST(request) {
   try {
-    const { userEmail, adminEmail, agree } = await request.json()
-    if (!userEmail || !adminEmail || typeof agree !== 'boolean') {
-      return NextResponse.json({ success: false, error: 'userEmail, adminEmail and agree(boolean) are required' }, { status: 400 })
+    const session = await getSession();
+    const user = session.user;
+
+    if (!user || !user.isLoggedIn) {
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Validate that the user exists and is authenticated (server-side verification)
-    const userData = await getUser(userEmail)
-    if (!userData.success) {
-      return NextResponse.json({ success: false, error: 'User not found' }, { status: 401 })
+    const { adminEmail, agree } = await request.json()
+    if (!adminEmail || typeof agree !== 'boolean') {
+      return NextResponse.json({ success: false, error: 'adminEmail and agree(boolean) are required' }, { status: 400 })
     }
 
-    const result = await requestsConsent(userEmail, adminEmail, agree)
+    const result = await requestsConsent(user.email, adminEmail, agree)
     return NextResponse.json(result)
   } catch (error) {
     console.error('requestsConsent error:', error)

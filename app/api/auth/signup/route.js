@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { signUp } from '@/lib/auth'
+import { getSession } from '@/lib/session'
 
 export async function POST(request) {
   try {
@@ -16,6 +17,15 @@ export async function POST(request) {
       const errorMsg = result.error.includes('already exists') ? 'Email already exists' : 'Failed to create account'
       return NextResponse.json({ success: false, error: errorMsg }, { status: 400 })
     }
+
+    // After successful sign-up, create a session for the user
+    const session = await getSession();
+    session.user = {
+      email: email,
+      name: name,
+      isLoggedIn: true,
+    };
+    await session.save();
 
     return NextResponse.json({ success: true })
   } catch (error) {

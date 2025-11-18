@@ -1,20 +1,21 @@
 import { NextResponse } from 'next/server'
 import { updateDate } from '../../../../lib/dates'
-import { getUser } from '../../../../lib/auth'
+import { getSession } from '@/lib/session'
 import { normalizeDeadlineDays } from '../../../../lib/calendarDefaults'
 
 export async function POST(request) {
   try {
-    const { email, event_id, update } = await request.json()
-    
-    if (!email || !event_id || !update) {
-      return NextResponse.json({ success: false, error: 'Email, event_id, and update object are required' }, { status: 400 })
+    const session = await getSession();
+    const user = session.user;
+
+    if (!user || !user.isLoggedIn) {
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Verify user is authenticated
-    const userData = await getUser(email)
-    if (!userData.success) {
-      return NextResponse.json({ success: false, error: 'User not found' }, { status: 401 })
+    const { event_id, update } = await request.json()
+    
+    if (!event_id || !update) {
+      return NextResponse.json({ success: false, error: 'event_id and update object are required' }, { status: 400 })
     }
 
     // map update object fields from event -> date
@@ -27,7 +28,7 @@ export async function POST(request) {
       updatePayload.deadline_days = normalizeDeadlineDays(update.deadline_days)
     }
 
-    const result = await updateDate(email, event_id, updatePayload)
+    const result = await updateDate(user.email, event_id, updatePayload)
     if (!result.success) return NextResponse.json(result, { status: 500 })
 
     const d = result.data
@@ -46,4 +47,3 @@ export async function POST(request) {
     return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 })
   }
 }
-

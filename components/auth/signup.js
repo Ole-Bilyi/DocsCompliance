@@ -50,8 +50,7 @@ export default function SignUp() {
         throw new Error(signUpData.error || 'Sign up failed')
       }
 
-      UserProfile.setEmail(formData.email)
-      UserProfile.setName(formData.name)
+      await UserProfile.syncWithServer()
       router.push('/join')
     } catch (error) {
       console.error('Sign up failed:', error)

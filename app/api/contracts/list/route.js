@@ -1,22 +1,17 @@
 import { NextResponse } from 'next/server'
 import { getContracts } from '../../../../lib/contracts'
-import { getUser } from '../../../../lib/auth'
+import { getSession } from '@/lib/session'
 
 export async function POST(request) {
   try {
-    const { email } = await request.json()
-    
-    if (!email) {
-      return NextResponse.json({ success: false, error: 'Email is required' }, { status: 400 })
+    const session = await getSession();
+    const user = session.user;
+
+    if (!user || !user.isLoggedIn) {
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Verify user is authenticated
-    const userData = await getUser(email)
-    if (!userData.success) {
-      return NextResponse.json({ success: false, error: 'User not found' }, { status: 401 })
-    }
-
-    const result = await getContracts(email)
+    const result = await getContracts(user.email)
     return NextResponse.json(result)
   } catch (error) {
     console.error('getContracts error:', error)

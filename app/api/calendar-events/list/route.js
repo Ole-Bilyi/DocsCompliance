@@ -1,23 +1,18 @@
 import { NextResponse } from 'next/server'
 import { getDates } from '../../../../lib/dates'
-import { getUser } from '../../../../lib/auth'
+import { getSession } from '@/lib/session'
 import { normalizeDeadlineDays } from '../../../../lib/calendarDefaults'
 
 export async function POST(request) {
   try {
-    const { email } = await request.json()
-    
-    if (!email) {
-      return NextResponse.json({ success: false, error: 'Email is required' }, { status: 400 })
+    const session = await getSession();
+    const user = session.user;
+
+    if (!user || !user.isLoggedIn) {
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Verify user is authenticated
-    const userData = await getUser(email)
-    if (!userData.success) {
-      return NextResponse.json({ success: false, error: 'User not found' }, { status: 401 })
-    }
-
-    const result = await getDates(email)
+    const result = await getDates(user.email)
     if (!result.success) return NextResponse.json(result, { status: 500 })
 
     // map dates -> calendar event shape expected by client
@@ -38,4 +33,3 @@ export async function POST(request) {
     return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 })
   }
 }
-

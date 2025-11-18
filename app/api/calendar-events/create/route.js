@@ -1,20 +1,21 @@
 import { NextResponse } from 'next/server'
 import { createDate } from '../../../../lib/dates'
-import { getUser } from '../../../../lib/auth'
+import { getSession } from '@/lib/session'
 import { normalizeDeadlineDays } from '../../../../lib/calendarDefaults'
 
 export async function POST(request) {
   try {
-    const { email, event } = await request.json()
-    
-    if (!email || !event) {
-      return NextResponse.json({ success: false, error: 'Email and event object are required' }, { status: 400 })
+    const session = await getSession();
+    const user = session.user;
+
+    if (!user || !user.isLoggedIn) {
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Verify user is authenticated
-    const userData = await getUser(email)
-    if (!userData.success) {
-      return NextResponse.json({ success: false, error: 'User not found' }, { status: 401 })
+    const { event } = await request.json()
+    
+    if (!event) {
+      return NextResponse.json({ success: false, error: 'Event object is required' }, { status: 400 })
     }
 
     // map incoming event -> date shape
@@ -23,7 +24,7 @@ export async function POST(request) {
       date_title: event.event_name,
       date_details: event.event_description,
       due_date: event.event_date,
-      assigned_to: email,
+      assigned_to: user.email,
       deadline_days: deadlineDays
     }
 
@@ -47,4 +48,3 @@ export async function POST(request) {
     return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 })
   }
 }
-

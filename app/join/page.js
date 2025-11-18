@@ -1,3 +1,4 @@
+// app/join/page.js
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -11,24 +12,23 @@ export default function JoinPage() {
 
   useEffect(() => {
     const checkAuth = async () => {
-      // First, try to restore session from server if email exists in localStorage
-      const email = UserProfile.getEmail();
-      if (email) {
-        await UserProfile.restoreFromServer();
-      }
-
-      const currentEmail = UserProfile.getEmail();
-      if (!currentEmail) {
-        router.push('/login');
-        return;
-      }
-
       try {
+        // First sync with server to get current user data
+        await UserProfile.syncWithServer()
+
+        const currentEmail = UserProfile.getEmail();
+        if (!currentEmail) {
+          router.push('/login');
+          return;
+        }
+
+        // Now call the check endpoint with the email
         const res = await fetch('/api/auth/check', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email: currentEmail }),
+          body: JSON.stringify({ email: currentEmail })
         });
+
         const authData = await res.json();
 
         if (!authData.authenticated) {
@@ -37,7 +37,7 @@ export default function JoinPage() {
           return;
         }
 
-        // Allow join page even if they already have a group (they can join another)
+        // Allow join page even if they already have a group
         setIsAuthorized(true);
       } catch (error) {
         console.error('Auth check failed:', error);

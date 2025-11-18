@@ -25,20 +25,18 @@ export default function Create() {
         setIsLoading(true);
         
         try {
-            const userEmail = UserProfile.getEmail();
-            if (!userEmail) throw new Error('No user logged in');
             if (!group.name.trim()) throw new Error('Group name is required');
 
             const res = await fetch('/api/group/create', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email: userEmail, groupName: group.name.trim() })
+                body: JSON.stringify({ groupName: group.name.trim() })
             });
 
             const createData = await res.json();
             if (!createData.success) throw new Error(createData.error || 'Failed to create group');
 
-            UserProfile.setGName(group.name.trim());
+            await UserProfile.syncWithServer()
             router.push('/mainPage');
         } catch (error) {
             console.error('Create failed:', error);

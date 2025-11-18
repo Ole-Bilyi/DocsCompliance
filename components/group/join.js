@@ -4,10 +4,10 @@ import Mstyle from "../styles/group.module.css";
 import Link from 'next/link';
 import { useState } from "react";
 import UserProfile from '../../app/session/UserProfile';
-import { useRouter } from "next/navigation";
+//import { useRouter } from "next/navigation";
 
 export default function join() {
-  const router = useRouter();
+  //const router = useRouter();
   const [Email, setEmail] = useState({email: ""});
   const [loading, setLoading] = useState(false)
   const [errorMsg, setErrorMsg] = useState(null)
@@ -24,13 +24,11 @@ export default function join() {
     setErrorMsg(null)
     setLoading(true)
     try {
-      const userEmail = UserProfile.getEmail()
-      if (!userEmail) throw new Error('No current user')
 
       const joinRes = await fetch('/api/group/join', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userEmail, adminEmail: Email.email })
+        body: JSON.stringify({ adminEmail: Email.email })
       }).then(r => r.json())
 
       if (!joinRes.success) throw new Error(joinRes.error || 'Join failed')

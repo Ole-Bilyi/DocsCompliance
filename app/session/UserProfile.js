@@ -1,184 +1,103 @@
+// app/session/UserProfile
 'use client';
 
-const STORAGE_KEY = 'docscompliance_user_profile';
-
 let UserProfile = (function() {
-  // Initialize from localStorage if available
-  let loadFromStorage = () => {
-    if (typeof window === 'undefined') return null;
+  let user_name = "";
+  let group_name = "";
+  let user_email = "";
+  let adminD = false;
+  let isLoggedIn = false;
+
+  const syncWithServer = async (retryCount = 3) => {
     try {
-      const stored = localStorage.getItem(STORAGE_KEY);
-      if (stored) {
-        return JSON.parse(stored);
+      const res = await fetch('/api/auth/user', {
+        credentials: 'include', // Ensure cookies are sent
+        cache: 'no-store' // Prevent caching
+      });
+      
+      if (!res.ok) {
+        throw new Error(`HTTP error! status: ${res.status}`);
       }
-    } catch (e) {
-      console.error('Error loading profile from storage:', e);
+      
+      const data = await res.json();
+      
+      if (data.isLoggedIn) {
+        user_name = data.name || "";
+        group_name = data.group?.group_name || "";
+        user_email = data.email || "";
+        adminD = data.admin || false;
+        isLoggedIn = true;
+        return { success: true, user: data };
+      } else {
+        clearSession();
+        return { success: false, error: 'Not logged in' };
+      }
+    } catch (error) {
+      console.error('Error syncing with server:', error);
+      
+      // Retry logic with exponential backoff
+      if (retryCount > 0) {
+        await new Promise(resolve => setTimeout(resolve, 300 * (4 - retryCount)));
+        return syncWithServer(retryCount - 1);
+      }
+      
+      clearSession();
+      return { success: false, error: error.message };
     }
-    return null;
   };
 
-  // Save to localStorage
-  let saveToStorage = (data) => {
-    if (typeof window === 'undefined') return;
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-    } catch (e) {
-      console.error('Error saving profile to storage:', e);
-    }
-  };
-
-  // Initialize state from localStorage or defaults
-  let storedData = loadFromStorage() || {};
-  let user_name = storedData.user_name || "";
-  let group_name = storedData.group_name || "";
-  let user_email = storedData.user_email || "";
-  let adminD = storedData.adminD || false;
-
-  // Internal function to sync all data to storage
-  let syncStorage = () => {
-    saveToStorage({
-      user_name,
-      group_name,
-      user_email,
-      adminD
-    });
-  };
-
+  // ... rest of your existing methods remain the same
   let getName = function() {
     return user_name;
-  };
-
-  let setName = function(name) {
-    user_name = name || "";
-    syncStorage();
   };
 
   let getAdmin = function() {
     return adminD;
   };
 
-  let setAdmin = function(admin) {
-    adminD = Boolean(admin);
-    syncStorage();
-  };
-
   let getGName = function() {
     return group_name;
-  };
-
-  let setGName = function(Gname) {
-    group_name = Gname || "";
-    syncStorage();
   };
 
   let getEmail = function() {
     return user_email;
   };
-
-  let setEmail = function(email) {
-    user_email = email || "";
-    syncStorage();
+  
+  let getIsLoggedIn = function() {
+    return isLoggedIn;
   };
 
-  // Clear all session data
   let clearSession = function() {
     user_name = "";
     group_name = "";
     user_email = "";
     adminD = false;
-    if (typeof window !== 'undefined') {
-      localStorage.removeItem(STORAGE_KEY);
-    }
+    isLoggedIn = false;
   };
 
-  // Restore session from server (useful after page refresh)
-  let restoreFromServer = async function() {
-    const email = user_email;
-    if (!email) {
-      return { success: false, error: 'No email in session' };
-    }
-
+  let logout = async function() {
     try {
-      const res = await fetch('/api/auth/check', {
+      await fetch('/api/auth/logout', { 
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email }),
+        credentials: 'include'
       });
-
-      if (!res.ok) {
-        throw new Error('Failed to restore session');
-      }
-
-      const authData = await res.json();
-      
-      if (!authData.authenticated) {
-        clearSession();
-        return { success: false, error: 'Session expired' };
-      }
-
-      // Fetch full user data to get name
-      const userRes = await fetch('/api/auth/get-user', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email }),
-      });
-
-      if (userRes.ok) {
-        const userData = await userRes.json();
-        if (userData.success && userData.data) {
-          setName(userData.data.user_name || user_name);
-          setAdmin(authData.admin || false);
-          
-          // Get group name if user has a group
-          if (authData.hasGroup && authData.groupId) {
-            const groupRes = await fetch('/api/group/get', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ groupId: authData.groupId }),
-            });
-            
-            if (groupRes.ok) {
-              const groupData = await groupRes.json();
-              if (groupData.success && groupData.data) {
-                setGName(groupData.data.group_name || "");
-              }
-            }
-          } else {
-            setGName("");
-          }
-        }
-      }
-
-      return { success: true };
     } catch (error) {
-      console.error('Error restoring session:', error);
-      return { success: false, error: error.message };
+      console.error('Logout failed:', error);
+    } finally {
+      clearSession();
     }
-  };
-
-  // Set all profile data at once (useful for login)
-  let setProfile = function(profile) {
-    if (profile.email !== undefined) user_email = profile.email || "";
-    if (profile.name !== undefined) user_name = profile.name || "";
-    if (profile.groupName !== undefined) group_name = profile.groupName || "";
-    if (profile.admin !== undefined) adminD = Boolean(profile.admin);
-    syncStorage();
   };
 
   return {
     getName: getName,
-    setName: setName,
     getAdmin: getAdmin,
-    setAdmin: setAdmin,
     getGName: getGName,
-    setGName: setGName,
     getEmail: getEmail,
-    setEmail: setEmail,
-    restoreFromServer: restoreFromServer,
+    getIsLoggedIn: getIsLoggedIn,
+    syncWithServer: syncWithServer,
     clearSession: clearSession,
-    setProfile: setProfile
+    logout: logout
   }
-
 })();
 
 export default UserProfile;
