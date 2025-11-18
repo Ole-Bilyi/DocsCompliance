@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import '../styles/Calendar.scss';
 import UserProfile from '../../app/session/UserProfile';
+import { CALENDAR_DEFAULT_DEADLINE_DAYS, normalizeDeadlineDays } from '@/lib/calendarDefaults';
 
 const MONTH_NAMES = [
   'January', 'February', 'March', 'April', 'May', 'June',
@@ -11,16 +12,15 @@ const MONTH_NAMES = [
 
 const DAYS_OF_WEEK = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
-const COLOR_OPTIONS = [
-  '#3b82f6', // blue
-  '#10b981', // green
-  '#f59e0b', // orange
-  '#ef4444', // red
-  '#8b5cf6', // purple
-  '#ec4899', // pink
-  '#06b6d4', // cyan
-  '#84cc16', // lime
-];
+// Status-based color mapping (instead of user-chosen colors)
+const STATUS_COLORS = {
+  'pending': '#eab308',    // yellow
+  'completed': '#10b981',  // green
+  'overdue': '#1e3a8a',    // dark blue
+  'deadline': '#ef4444'    // red
+};
+
+const DEFAULT_STATUS = 'pending';
 
 export default function Calendar() {
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -29,44 +29,88 @@ export default function Calendar() {
   const [selectedDate, setSelectedDate] = useState(null);
   const [eventModal, setEventModal] = useState({ open: false, date: null, event: null });
   const [plannedEventsModal, setPlannedEventsModal] = useState(false);
+  const [userEmail, setUserEmail] = useState('');
+  const [isAdmin, setIsAdmin] = useState(false);
 
   const formatDateKey = (date) => {
     if (!date) return null;
     return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
   };
 
+  const getColorFromStatus = (status) => {
+    return STATUS_COLORS[status] || STATUS_COLORS[DEFAULT_STATUS];
+  };
+
+  const buildGroupedEvents = (list = []) => {
+    const grouped = {};
+    (Array.isArray(list) ? list : []).forEach((ev) => {
+      if (!ev || !ev.due_date) return;
+      const dateObj = new Date(ev.due_date);
+      if (Number.isNaN(dateObj.getTime())) return;
+      const key = formatDateKey(dateObj);
+      if (!key) return;
+      const status = ev.status || DEFAULT_STATUS;
+      // Extract email string from nested object (from DB join)
+      const emailStr = typeof ev.email === 'string' ? ev.email : (ev.email && ev.email.email ? ev.email.email : null);
+      const normalizedEvent = {
+        id: ev.date_id,
+        name: ev.date_title,
+        description: ev.date_details,
+        color: getColorFromStatus(status),
+        deadline_days: normalizeDeadlineDays(ev.deadline_days),
+        status: status,
+        assigned_to: emailStr
+      };
+      if (!grouped[key]) grouped[key] = [];
+      grouped[key].push(normalizedEvent);
+    });
+    return grouped;
+  };
+
+  const fetchEventsForEmail = async (email) => {
+    if (!email) return {};
+    try {
+      const res = await fetch('/api/dates/list', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email })
+      });
+      const payload = await res.json();
+      if (payload.success && Array.isArray(payload.data)) {
+        return buildGroupedEvents(payload.data);
+      }
+    } catch (error) {
+      console.error('fetchEvents error', error);
+    }
+    return {};
+  };
+
+  const refreshEvents = async (email = userEmail) => {
+    if (!email) return;
+    const grouped = await fetchEventsForEmail(email);
+    setEvents(grouped);
+    return grouped;
+  };
+
+  useEffect(() => {
+    setUserEmail(UserProfile.getEmail() || '');
+    setIsAdmin(Boolean(UserProfile.getAdmin && UserProfile.getAdmin()));
+  }, []);
+
   // Load events from server when component mounts
   useEffect(() => {
     let mounted = true;
     async function fetchEvents() {
-      const email = UserProfile.getEmail();
-      if (!email) { if (mounted) setEvents({}); return; }
-      try {
-        const res = await fetch('/api/calendar-events/list', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email })
-        });
-        const payload = await res.json();
-        if (!payload.success || !Array.isArray(payload.data)) {
-          if (mounted) setEvents({});
-          return;
-        }
-        const grouped = {};
-        for (const ev of payload.data) {
-          const d = new Date(ev.event_date);
-          const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-          if (!grouped[key]) grouped[key] = [];
-          grouped[key].push({ id: ev.event_id, name: ev.event_name, description: ev.event_description, color: ev.event_color, ...ev });
-        }
-        if (mounted) setEvents(grouped);
-      } catch (e) {
+      if (!userEmail) {
         if (mounted) setEvents({});
+        return;
       }
+      const grouped = await fetchEventsForEmail(userEmail);
+      if (mounted) setEvents(grouped);
     }
     fetchEvents();
     return () => { mounted = false; };
-  }, []);
+  }, [userEmail]);
 
   const getDaysInMonth = (date) => {
     const year = date.getFullYear();
@@ -145,40 +189,38 @@ export default function Calendar() {
   };
 
   const handleSaveEvent = async (eventData) => {
-    const email = UserProfile.getEmail();
-    if (!email) return;
+    const email = userEmail;
+    if (!email || !eventModal.date) return;
     const key = formatDateKey(eventModal.date);
+    const existingDeadline = eventModal.event?.deadline_days;
+    const deadlineDays = normalizeDeadlineDays(
+      eventData.deadline_days ?? existingDeadline ?? CALENDAR_DEFAULT_DEADLINE_DAYS
+    );
+    const assignedTarget = (isAdmin ? eventData.assigned_to : email) || email;
+    
+    const payload = {
+      date_title: eventData.name,
+      date_details: eventData.description,
+      due_date: key,
+      deadline_days: deadlineDays,
+      assigned_to: assignedTarget
+    };
+    
     try {
       if (eventModal.event && eventModal.event.id) {
-        // Update
-        await fetch('/api/calendar-events/update', {
+        await fetch('/api/dates/update', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, event_id: eventModal.event.id, update: { event_name: eventData.name, event_description: eventData.description, event_date: key, event_color: eventData.color } })
+          body: JSON.stringify({ email, date_id: eventModal.event.id, update: payload })
         });
       } else {
-        // Create
-        await fetch('/api/calendar-events/create', {
+        await fetch('/api/dates/create', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, event: { event_name: eventData.name, event_description: eventData.description, event_date: key, event_color: eventData.color } })
+          body: JSON.stringify({ email, date: payload })
         });
       }
-      // refresh list
-      const res = await fetch('/api/calendar-events/list', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email })
-      });
-      const payload = await res.json();
-      if (payload.success && Array.isArray(payload.data)) {
-        const grouped = {};
-        for (const ev of payload.data) {
-          const d = new Date(ev.event_date);
-          const k = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-          if (!grouped[k]) grouped[k] = [];
-          grouped[k].push({ id: ev.event_id, name: ev.event_name, description: ev.event_description, color: ev.event_color, ...ev });
-        }
-        setEvents(grouped);
-      }
+      await refreshEvents(email);
       setEventModal({ open: false, date: null, event: null });
     } catch (e) {
       console.error('save event error', e);
@@ -186,23 +228,11 @@ export default function Calendar() {
   };
 
   const handleDeleteEvent = async (eventId) => {
-    const email = UserProfile.getEmail();
+    const email = userEmail;
     if (!email) return;
     try {
-      await fetch('/api/calendar-events/delete', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, event_id: eventId }) });
-      // refresh
-      const res = await fetch('/api/calendar-events/list', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email }) });
-      const payload = await res.json();
-      if (payload.success && Array.isArray(payload.data)) {
-        const grouped = {};
-        for (const ev of payload.data) {
-          const d = new Date(ev.event_date);
-          const k = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-          if (!grouped[k]) grouped[k] = [];
-          grouped[k].push({ id: ev.event_id, name: ev.event_name, description: ev.event_description, color: ev.event_color, ...ev });
-        }
-        setEvents(grouped);
-      }
+      await fetch('/api/dates/delete', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, date_id: eventId }) });
+      await refreshEvents(email);
       setEventModal({ open: false, date: null, event: null });
     } catch (e) {
       console.error('delete error', e);
@@ -237,6 +267,9 @@ export default function Calendar() {
         const [year, month, day] = dateKey.split('-').map(Number);
         const eventDate = new Date(year, month - 1, day);
         dateEvents.forEach(event => {
+          if (event.status === 'completed') {
+            return;
+          }
           allEvents.push({
             ...event,
             date: eventDate,
@@ -320,7 +353,7 @@ export default function Calendar() {
                         <div
                           key={event.id}
                           className="calendar__event-dot"
-                          style={{ backgroundColor: event.color || COLOR_OPTIONS[0] }}
+                          style={{ backgroundColor: event.color || STATUS_COLORS[DEFAULT_STATUS] }}
                           onClick={(e) => {
                             e.stopPropagation();
                             handleEventClick(date, event);
@@ -386,7 +419,8 @@ export default function Calendar() {
           onSave={handleSaveEvent}
           onDelete={handleDeleteEvent}
           onClose={() => setEventModal({ open: false, date: null, event: null })}
-          colorOptions={COLOR_OPTIONS}
+          currentUserEmail={userEmail}
+          isAdmin={isAdmin}
         />
       )}
 
@@ -410,27 +444,32 @@ export default function Calendar() {
   );
 }
 
-function EventModal({ date, event, onSave, onDelete, onClose, colorOptions }) {
+function EventModal({ date, event, onSave, onDelete, onClose, currentUserEmail, isAdmin }) {
   const [name, setName] = useState(event?.name || '');
   const [description, setDescription] = useState(event?.description || '');
-  const [color, setColor] = useState(event?.color || colorOptions[0]);
+  const [assigned_to, setAssignedTo] = useState(event?.assigned_to || currentUserEmail || '');
+  const [deadline_days, setDeadlineDays] = useState(event?.deadline_days || CALENDAR_DEFAULT_DEADLINE_DAYS);
 
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!name.trim()) return;
     
+    const normalizedAssigned = (isAdmin ? assigned_to.trim() : currentUserEmail) || currentUserEmail;
     onSave({
       name: name.trim(),
       description: description.trim(),
-      color
+      assigned_to: normalizedAssigned,
+      deadline_days: parseInt(deadline_days, 10) || CALENDAR_DEFAULT_DEADLINE_DAYS
     });
   };
+
+  const canEditAssigned = isAdmin;
 
   return (
     <div className="event-modal__overlay" onClick={onClose}>
       <div className="event-modal" onClick={(e) => e.stopPropagation()}>
         <div className="event-modal__header">
-          <h3>{event ? 'Edit Event' : 'New Event'}</h3>
+          <h3>{event ? 'Edit Date' : 'New Date'}</h3>
           <button onClick={onClose} className="event-modal__close">×</button>
         </div>
         
@@ -438,43 +477,58 @@ function EventModal({ date, event, onSave, onDelete, onClose, colorOptions }) {
           {date && `${MONTH_NAMES[date.getMonth()]} ${date.getDate()}, ${date.getFullYear()}`}
         </div>
 
+        {event && (
+          <div className="event-modal__status">
+            <strong>Status:</strong> <span style={{ color: STATUS_COLORS[event.status] || STATUS_COLORS[DEFAULT_STATUS] }}>{event.status}</span>
+          </div>
+        )}
+
         <form onSubmit={handleSubmit} className="event-modal__form">
           <div className="event-modal__field">
-            <label>Event Name *</label>
+            <label>Title *</label>
             <input
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="Enter event name"
+              placeholder="Enter date title"
               required
               autoFocus
             />
           </div>
 
           <div className="event-modal__field">
-            <label>Description</label>
+            <label>Details</label>
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="Enter event description"
+              placeholder="Enter date details"
               rows="4"
             />
           </div>
 
           <div className="event-modal__field">
-            <label>Color</label>
-            <div className="event-modal__colors">
-              {colorOptions.map((col) => (
-                <button
-                  key={col}
-                  type="button"
-                  className={`event-modal__color-option ${color === col ? 'event-modal__color-option--selected' : ''}`}
-                  style={{ backgroundColor: col }}
-                  onClick={() => setColor(col)}
-                  title={col}
-                />
-              ))}
-            </div>
+            <label>Assigned To</label>
+            <input
+              type="email"
+              value={assigned_to}
+              onChange={(e) => setAssignedTo(e.target.value)}
+              placeholder="user@example.com"
+              disabled={!canEditAssigned}
+              title={!canEditAssigned ? 'Only admins can change assignment' : ''}
+              required={isAdmin}
+            />
+          </div>
+
+          <div className="event-modal__field">
+            <label>Deadline Days</label>
+            <input
+              type="number"
+              value={deadline_days}
+              onChange={(e) => setDeadlineDays(e.target.value)}
+              min="1"
+              max="365"
+              placeholder="7"
+            />
           </div>
 
           <div className="event-modal__actions">
@@ -582,7 +636,7 @@ function PlannedEventsModal({ events, onClose, onEventClick, onDateClick }) {
                         >
                           <div
                             className="planned-events-modal__event-color"
-                            style={{ backgroundColor: event.color || COLOR_OPTIONS[0] }}
+                            style={{ backgroundColor: event.color || STATUS_COLORS[DEFAULT_STATUS] }}
                           />
                           <div className="planned-events-modal__event-details">
                             <strong>{event.name}</strong>
@@ -603,3 +657,4 @@ function PlannedEventsModal({ events, onClose, onEventClick, onDateClick }) {
     </div>
   );
 }
+

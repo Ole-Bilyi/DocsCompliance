@@ -333,7 +333,6 @@
 .profile-popup__email {
   word-break: break-all;
   font-size: 0.95rem;
-  color: rgba(17,17,17,0.85);
 }
 
 .profile-popup__actions {
@@ -401,7 +400,7 @@
 .content > .page,
 .content > .settings {
   max-width: 1200px;
-  margin: 0 auto;
+  margin: 0;
 }
 
 @media (min-width: 1024px) {
@@ -482,6 +481,6 @@
 
   .content {
     padding: 3rem;
-    margin: 0 auto;
+    margin: 0;
   }
 }

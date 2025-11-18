@@ -4,12 +4,11 @@
   background: white;
   border-radius: 1rem;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-  padding: 2rem;
+  padding: 3rem;
   font-family: 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
   position: relative;
 
   @media (prefers-color-scheme: dark) {
-    background: rgba(23, 32, 55, 0.95);
     color: #f8fafc;
   }
 }
@@ -997,7 +996,7 @@
 
 /* Dark-first defaults (moved from media queries) */
 .calendar {
-  background: rgba(23, 32, 55, 0.95);
+  background: linear-gradient(135deg, rgba(20, 28, 50) 0%, rgba(23, 32, 55, 0.8) 100%);
   color: #f8fafc;
 }
 
@@ -1222,7 +1221,7 @@
 /* Laptop-focused adjustments (medium/large laptops ~1024px–1399px) */
 @media (min-width: 1024px) and (max-width: 1399px) {
   .calendar {
-    padding: 1.5rem;
+    padding: 2.5rem;
   }
 
   .calendar__header {

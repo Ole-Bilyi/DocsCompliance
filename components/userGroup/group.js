@@ -4,6 +4,16 @@ import React, { useState, useEffect } from "react";
 import styles from "../styles/group.module.scss";
 import UserProfile from '../../app/session/UserProfile';
 
+const toPlainText = (value, fallback = '') => {
+  if (!value) return fallback;
+  if (typeof value === 'string') return value;
+  if (typeof value === 'object') {
+    if ('user_name' in value) return value.user_name || fallback;
+    if ('email' in value) return value.email || fallback;
+  }
+  return String(value);
+};
+
 export default function userGroup() {
   const [members, setMembers] = useState([]);
   const [requests, setRequests] = useState([]);
@@ -32,7 +42,14 @@ export default function userGroup() {
       const res = await fetch('/api/group/requests', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email }) });
       const payload = await res.json();
       if (payload.success && Array.isArray(payload.data)) {
-        setRequests(payload.data.map((r, idx) => ({ id: r.user_id || idx, name: r.user_name || 'Unknown', email: r.email || '', note: r.note || '', status: r.status })));
+        const normalized = payload.data.map((r, idx) => {
+          const name = toPlainText(r.user_name, 'Unknown');
+          const emailValue = toPlainText(r.email, '');
+          const note = toPlainText(r.note, '');
+          const id = emailValue || `req-${idx}`;
+          return { id, name, email: emailValue, note, status: r.status };
+        });
+        setRequests(normalized);
       } else {
         setRequests([]);
       }

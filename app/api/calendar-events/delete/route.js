@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { deleteCalendarEvent } from '../../../../lib/calendarEvents'
+import { deleteDate } from '../../../../lib/dates'
 import { getUser } from '../../../../lib/auth'
 
 export async function POST(request) {
@@ -16,8 +16,10 @@ export async function POST(request) {
       return NextResponse.json({ success: false, error: 'User not found' }, { status: 401 })
     }
 
-    const result = await deleteCalendarEvent(email, event_id)
-    return NextResponse.json(result)
+    const result = await deleteDate(email, event_id)
+    if (!result.success) return NextResponse.json(result, { status: 500 })
+
+    return NextResponse.json({ success: true })
   } catch (error) {
     console.error('deleteCalendarEvent error:', error)
     return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 })
