@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useRouter, usePathname } from 'next/navigation';
 import UserProfile from '../../app/session/UserProfile';
 import Link from 'next/link';
@@ -9,6 +9,8 @@ import "../styles/MainLayout.scss";
 
 const navLinks = [
   { href: "/mainPage", label: "Dashboard" },
+  { href: "/calendar", label: "Calendar" },
+  { href: "/contracts", label: "Contracts" },
   { href: "/userProfile", label: "Profile" },
   { href: "/group", label: "Group" },
   { href: "/settings", label: "Settings" },
@@ -23,8 +25,15 @@ const MainLayout = ({ children }) => {
   // Centralized auth check for pages that use MainLayout
   useEffect(() => {
     const checkAuth = async () => {
+      // First, try to restore session from server if email exists in localStorage
       const email = UserProfile.getEmail();
-      if (!email) {
+      if (email) {
+        // Restore session data from server to sync with latest data
+        await UserProfile.restoreFromServer();
+      }
+
+      const currentEmail = UserProfile.getEmail();
+      if (!currentEmail) {
         router.push('/login');
         return;
       }
@@ -33,11 +42,12 @@ const MainLayout = ({ children }) => {
         const res = await fetch('/api/auth/check', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email }),
+          body: JSON.stringify({ email: currentEmail }),
         });
 
         const authData = await res.json();
         if (!authData.authenticated) {
+          UserProfile.clearSession();
           router.push('/login');
           return;
         }
@@ -48,6 +58,7 @@ const MainLayout = ({ children }) => {
         }
       } catch (error) {
         console.error('Auth check failed (MainLayout):', error);
+        UserProfile.clearSession();
         router.push('/login');
       }
     };
@@ -55,12 +66,35 @@ const MainLayout = ({ children }) => {
     checkAuth();
   }, [router]);
 
-  const displayName = useMemo(() => {
-    return UserProfile.getName() || UserProfile.getEmail() || "Loading…";
-  }, []);
+  const [displayName, setDisplayName] = useState("Loading…");
+  const [groupName, setGroupName] = useState("Workspace");
+  const [email, setEmail] = useState('—');
+  const [showProfile, setShowProfile] = useState(false);
 
-  const groupName = useMemo(() => {
-    return UserProfile.getGName() || "Workspace";
+  // Update display name and group name when profile changes
+  useEffect(() => {
+    const updateProfile = () => {
+      setDisplayName(UserProfile.getName() || UserProfile.getEmail() || "Loading…");
+      setGroupName(UserProfile.getGName() || "Workspace");
+      setEmail(UserProfile.getEmail() || '—');
+    };
+
+    // Initial update
+    updateProfile();
+
+    // Set up interval to check for profile changes (for when session is restored)
+    const interval = setInterval(updateProfile, 500);
+    
+    // Also listen for storage changes (when session is restored in another tab)
+    const handleStorageChange = () => {
+      updateProfile();
+    };
+    window.addEventListener('storage', handleStorageChange);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('storage', handleStorageChange);
+    };
   }, []);
 
   useEffect(() => {
@@ -79,9 +113,7 @@ const MainLayout = ({ children }) => {
   }, []);
 
   const handleSignOut = () => {
-    UserProfile.setEmail("");
-    UserProfile.setName("");
-    UserProfile.setGName("");
+    UserProfile.clearSession();
     router.push("/login");
   };
 
@@ -157,7 +189,16 @@ const MainLayout = ({ children }) => {
             <h1>{groupName}</h1>
           </div>
 
-          <div className="topbar__user">
+          <div
+            className="topbar__user"
+            onMouseEnter={() => setShowProfile(true)}
+            onMouseLeave={() => setShowProfile(false)}
+            onFocus={() => setShowProfile(true)}
+            onBlur={() => setShowProfile(false)}
+            tabIndex={0}
+            aria-haspopup="true"
+            aria-expanded={showProfile}
+          >
             <div className="topbar__user-meta">
               <span className="topbar__user-label">Signed in as</span>
               <strong>{displayName}</strong>
@@ -169,6 +210,28 @@ const MainLayout = ({ children }) => {
                 .join("")
                 .slice(0, 2)
                 .toUpperCase()}
+            </div>
+
+            <div
+              className={`profile-popup ${showProfile ? 'profile-popup--visible' : ''}`}
+              role="dialog"
+              aria-label="User profile"
+              aria-hidden={!showProfile}
+            >
+                  <div className="profile-popup__row">
+                    <div className="profile-popup__label">Name</div>
+                    <div className="profile-popup__value">{displayName}</div>
+                  </div>
+
+                  <div className="profile-popup__row">
+                    <div className="profile-popup__label">Email</div>
+                    <div className="profile-popup__value profile-popup__email">{email}</div>
+                  </div>
+
+                  <div className="profile-popup__row">
+                    <div className="profile-popup__label">Group</div>
+                    <div className="profile-popup__value">{groupName}</div>
+                  </div>
             </div>
           </div>
         </header>

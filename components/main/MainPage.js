@@ -1,12 +1,14 @@
-import React from "react";
+"use client";
+
+import React, { useState, useEffect } from "react";
 import "../styles/MainPage.scss";
 import UserProfile from "../../app/session/UserProfile";
+import Link from "next/link";
 
 const stats = [
-  { label: "Active contracts", value: "24", change: "+4.1%" },
+  { label: "Active contracts", value: "24", change: "+2 last week" },
   { label: "Pending reviews", value: "8", change: "-2 cases" },
   { label: "Expiring soon", value: "5", change: "Next 30 days" },
-  { label: "Compliance score", value: "92", suffix: "/100" },
 ];
 
 const reminders = [
@@ -29,8 +31,35 @@ const documents = [
 ];
 
 export default function MainPage() {
-  const displayName = UserProfile.getName() || UserProfile.getEmail() || "team";
-  const groupName = UserProfile.getGName() || "your workspace";
+  const [displayName, setDisplayName] = useState("team");
+  const [groupName, setGroupName] = useState("your workspace");
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    // Only access localStorage on client side after mount
+    setIsMounted(true);
+    const updateProfile = () => {
+      setDisplayName(UserProfile.getName() || UserProfile.getEmail() || "team");
+      setGroupName(UserProfile.getGName() || "your workspace");
+    };
+
+    // Initial update
+    updateProfile();
+
+    // Listen for storage changes (when session is restored in another tab)
+    const handleStorageChange = () => {
+      updateProfile();
+    };
+    window.addEventListener('storage', handleStorageChange);
+
+    // Set up interval to check for profile changes (for when session is restored)
+    const interval = setInterval(updateProfile, 500);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('storage', handleStorageChange);
+    };
+  }, []);
 
   return (
     <div className="dashboard">
@@ -69,7 +98,9 @@ export default function MainPage() {
               <p className="panel__eyebrow">Focus</p>
               <h3>Today's reminders</h3>
             </div>
-            <button type="button">View calendar</button>
+            <Link href="/calendar">
+              <button type="button">View calendar</button>
+            </Link>
           </header>
 
           <ul className="reminders">

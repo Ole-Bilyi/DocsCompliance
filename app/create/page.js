@@ -11,8 +11,14 @@ export default function CreatePage() {
 
   useEffect(() => {
     const checkAuth = async () => {
+      // First, try to restore session from server if email exists in localStorage
       const email = UserProfile.getEmail();
-      if (!email) {
+      if (email) {
+        await UserProfile.restoreFromServer();
+      }
+
+      const currentEmail = UserProfile.getEmail();
+      if (!currentEmail) {
         router.push('/login');
         return;
       }
@@ -21,11 +27,12 @@ export default function CreatePage() {
         const res = await fetch('/api/auth/check', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email }),
+          body: JSON.stringify({ email: currentEmail }),
         });
         const authData = await res.json();
 
         if (!authData.authenticated) {
+          UserProfile.clearSession();
           router.push('/login');
           return;
         }
@@ -34,6 +41,7 @@ export default function CreatePage() {
         setIsAuthorized(true);
       } catch (error) {
         console.error('Auth check failed:', error);
+        UserProfile.clearSession();
         router.push('/login');
       }
     };

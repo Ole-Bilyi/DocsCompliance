@@ -45,10 +45,12 @@ export default function Login() {
       }
 
       const { name, admin, group } = loginData.data
-      UserProfile.setEmail(formData.email)
-      UserProfile.setName(name)
-      UserProfile.setAdmin(admin)
-      UserProfile.setGName(group?.group_name || null)
+      UserProfile.setProfile({
+        email: formData.email,
+        name: name,
+        admin: admin,
+        groupName: group?.group_name || null
+      })
 
       router.push('/mainPage')
     } catch (error) {
