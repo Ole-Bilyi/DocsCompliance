@@ -30,8 +30,6 @@ const MainLayout = ({ children }) => {
   // Centralized auth check for pages that use MainLayout
   useEffect(() => {
     const checkAuth = async () => {
-      // Only check auth if we don't have valid local data
-      if (!UserProfile.getEmail() || !UserProfile.getIsLoggedIn()) {
         setIsCheckingAuth(true);
         
         try {
@@ -74,15 +72,7 @@ const MainLayout = ({ children }) => {
         } finally {
           setIsCheckingAuth(false);
         }
-      } else {
-        // We already have valid local data, just update the display
-        setDisplayName(UserProfile.getName() || UserProfile.getEmail() || "User");
-        setGroupName(UserProfile.getGName() || "Workspace");
-        setEmail(UserProfile.getEmail() || '—');
-        setIsCheckingAuth(false);
-      }
-    };
-    
+      };    
     checkAuth();
   }, [router, pathname]);
 
@@ -93,9 +83,6 @@ const MainLayout = ({ children }) => {
       setGroupName(UserProfile.getGName() || "Workspace");
       setEmail(UserProfile.getEmail() || '—');
     };
-
-    // Update periodically
-    const interval = setInterval(updateProfile, 2000);
     
     // Also listen for storage changes
     const handleStorageChange = () => {
@@ -104,7 +91,6 @@ const MainLayout = ({ children }) => {
     window.addEventListener('storage', handleStorageChange);
 
     return () => {
-      clearInterval(interval);
       window.removeEventListener('storage', handleStorageChange);
     };
   }, []);
