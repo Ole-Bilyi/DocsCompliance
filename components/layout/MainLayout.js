@@ -20,7 +20,7 @@ const MainLayout = ({ children }) => {
   const pathname = usePathname();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isDesktop, setIsDesktop] = useState(false);
-  const [isCheckingAuth, setIsCheckingAuth] = useState(true); // Add loading state
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
 
   const [displayName, setDisplayName] = useState("Loading…");
   const [groupName, setGroupName] = useState("Workspace");
@@ -30,56 +30,61 @@ const MainLayout = ({ children }) => {
   // Centralized auth check for pages that use MainLayout
   useEffect(() => {
     const checkAuth = async () => {
+      // Only check auth if we don't have valid local data
       if (!UserProfile.getEmail() || !UserProfile.getIsLoggedIn()) {
-      setIsCheckingAuth(true);
-      
-      try {
-        // Sync with server first to get current session
-        await UserProfile.syncWithServer()
+        setIsCheckingAuth(true);
+        
+        try {
+          // Sync with server first to get current session
+          await UserProfile.syncWithServer();
 
-        const currentEmail = UserProfile.getEmail();
-        if (!currentEmail) {
-          router.push('/login');
-          return;
-        }
+          const currentEmail = UserProfile.getEmail();
+          if (!currentEmail) {
+            router.push('/login');
+            return;
+          }
 
-        const res = await fetch('/api/auth/check', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email: currentEmail }),
-        });
+          const res = await fetch('/api/auth/check', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: currentEmail }),
+          });
 
-        const authData = await res.json();
-        if (!authData.authenticated) {
+          const authData = await res.json();
+          if (!authData.authenticated) {
+            UserProfile.clearSession();
+            router.push('/login');
+            return;
+          }
+
+          if (!authData.hasGroup) {
+            router.push('/join');
+            return;
+          }
+
+          // Update profile data after successful auth
+          setDisplayName(UserProfile.getName() || UserProfile.getEmail() || "User");
+          setGroupName(UserProfile.getGName() || "Workspace");
+          setEmail(UserProfile.getEmail() || '—');
+          
+        } catch (error) {
+          console.error('Auth check failed (MainLayout):', error);
           UserProfile.clearSession();
           router.push('/login');
-          return;
+        } finally {
+          setIsCheckingAuth(false);
         }
-
-        if (!authData.hasGroup) {
-          router.push('/join');
-          return;
-        }
-
-        // Update profile data after successful auth
+      } else {
+        // We already have valid local data, just update the display
         setDisplayName(UserProfile.getName() || UserProfile.getEmail() || "User");
         setGroupName(UserProfile.getGName() || "Workspace");
         setEmail(UserProfile.getEmail() || '—');
-        
-      } catch (error) {
-        console.error('Auth check failed (MainLayout):', error);
-        UserProfile.clearSession();
-        router.push('/login');
-      } finally {
         setIsCheckingAuth(false);
       }
-    } else {
-      setIsCheckingAuth(false);
-    }
     };
     
     checkAuth();
-  }, [router, pathname]); // Added pathname to re-check on route changes
+  }, [router, pathname]);
 
   // Update display name and group name when profile changes
   useEffect(() => {
@@ -89,8 +94,8 @@ const MainLayout = ({ children }) => {
       setEmail(UserProfile.getEmail() || '—');
     };
 
-    // Update periodically (reduce interval frequency)
-    const interval = setInterval(updateProfile, 2000); // Reduced from 500ms to 2s
+    // Update periodically
+    const interval = setInterval(updateProfile, 2000);
     
     // Also listen for storage changes
     const handleStorageChange = () => {
@@ -104,6 +109,7 @@ const MainLayout = ({ children }) => {
     };
   }, []);
 
+  // Rest of your component remains the same...
   useEffect(() => {
     if (typeof window === "undefined") return;
 
@@ -120,7 +126,7 @@ const MainLayout = ({ children }) => {
   }, []);
 
   const handleSignOut = async () => {
-    await UserProfile.logout(); // Use the proper logout method
+    await UserProfile.logout();
     router.push("/login");
   };
 
@@ -141,7 +147,10 @@ const MainLayout = ({ children }) => {
         display: 'flex', 
         justifyContent: 'center', 
         alignItems: 'center', 
-        height: '100vh' 
+        height: '100vh',
+        fontSize: '5rem',
+        fontWeight: 'bold',
+        fontStyle: 'italic'
       }}>
         <div>Loading...</div>
       </div>
