@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server'
 import textract from 'textract'
-import * as PDFParse from 'pdf-parse'
 import { getSupabaseAdmin } from '../../../lib/supabaseAdmin'
 import { getSession } from '@/lib/session'
 
@@ -8,6 +7,7 @@ async function getAdmin(){ return getSupabaseAdmin() }
 
 export async function POST(request) {
     try {
+        const PDFParse = require('pdf-parse');
         const session = await getSession();
         const user = session.user;
 
