@@ -1,13 +1,9 @@
 import { NextResponse } from 'next/server'
-import textract from 'textract'
-import { getSupabaseAdmin } from '../../../lib/supabaseAdmin'
 import { getSession } from '@/lib/session'
-
-async function getAdmin(){ return getSupabaseAdmin() }
+import { getFileData } from '@/lib/contracts';
 
 export async function POST(request) {
     try {
-        const PDFParse = require('pdf-parse');
         const session = await getSession();
         const user = session.user;
 
@@ -21,70 +17,91 @@ export async function POST(request) {
         }
 
         const fileExt = file_name.split('.').pop().toLowerCase()
+
+        const supportedTypes = ['txt', 'pdf', 'docx'];
+        if (!supportedTypes.includes(fileExt)) {
+            return NextResponse.json({ 
+                success: false, 
+                error: `Unsupported file type: ${fileExt}. Supported: ${supportedTypes.join(', ')}` 
+            }, { status: 400 });
+        }
+
         let text = ''
-
         // Use server-side admin client to fetch contract metadata and file
-        const supabaseAdmin = await getAdmin()
-        const { data: contract, error: contractError } = await supabaseAdmin
-            .from('contracts')
-            .select('file_path, file_name')
-            .eq('cont_id', contId)
-            .single()
-
-        if (contractError) {
-            return NextResponse.json({ success: false, error: 'Contract not found' }, { status: 404 })
+        const download = await getFileData(contId);
+        if (!download.success || !download.data) {
+            return NextResponse.json({ success: false, error: `Failed to download file data: ${download.error}` }, { status: 500 });
+        }
+        const downloadData = download.data;
+        
+        // Use Blob.text() for text-based files
+        if (fileExt === 'txt') {
+            text = await downloadData.text();
+        } else if (fileExt === 'pdf') {
+            // Convert blob to array buffer for PDF parsing
+            const arrayBuffer = await downloadData.arrayBuffer();
+            try {
+                // Try direct text extraction first
+                text = await downloadData.text();
+                if (!text || text.trim().length < 19) {
+                    // Fallback to PDFParse if native text extraction fails
+                    const PDFParse = require('pdf-parse');
+                    const buffer = Buffer.from(arrayBuffer);
+                    const data = await PDFParse(buffer);
+                    text = data.text;
+                }
+            } catch (pdfError) {
+                console.error('PDF text extraction failed: ', pdfError);
+                return NextResponse.json({ 
+                    success: false, 
+                    error: 'Failed to extract text from PDF: ' + pdfError.message
+                }, { status: 500 });
+            }
+        } else if (fileExt === 'docx') {
+            try {
+                const mammoth = await import('mammoth');
+                const arrayBuffer = await downloadData.arrayBuffer();
+                const result = await mammoth.extractRawText({ arrayBuffer });
+                text = result.value;
+            } catch (docxError) {
+                console.error('DOCX extraction failed: ', docxError);
+                return NextResponse.json({ 
+                    success: false, 
+                    error: 'Failed to extract text from DOCX file: ' + docxError.message
+                }, { status: 500 });
+            }
         }
 
-        const filePath = contract.file_path
-        const storedName = contract.file_name || file_name
+        if (text && text.trim().length > 0) {
+            const extractedDates = extractDatesWithContext(text);
 
-        const { data: downloadData, error: downloadError } = await supabaseAdmin.storage.from('contracts').download(filePath)
-        if (downloadError) {
-            console.error('Storage download error:', downloadError)
-            return NextResponse.json({success: false, error: `File not found in storage: ${downloadError.message}`}, { status: 404 })
-    }
-        if (!downloadData) {
-            return NextResponse.json({ success: false, error: 'Failed to download file from storage' }, { status: 500 })
-        }
-
-        const arrayBuffer = await downloadData.arrayBuffer()
-        const buffer = Buffer.from(arrayBuffer)
-
-        if (fileExt === 'pdf') {
-            const data = await PDFParse.default(buffer)
-            text = data.text
-        } else if (fileExt === 'docx' || fileExt === 'txt') {
-            text = await new Promise((resolve, reject) => {
-                textract.fromBufferWithName(buffer, storedName, (error, extractedText) => {
-                    if (error) reject(error)
-                    else resolve(extractedText)
-                })
-            })
+            return NextResponse.json({
+                success: true,
+                dates_found: extractedDates.length,
+                extracted_dates: extractedDates,
+                text_sample: text.substring(0, 200) + '...',
+                error: null
+            });
         } else {
-            return NextResponse.json({ success: false, error: `Unsupported file type: ${fileExt}` }, { status: 400 })
+            return NextResponse.json({
+                success: false,
+                error: 'No extractable text found in the file',
+                dates_found: 0,
+                extracted_dates: []
+            }, { status: 400 });
         }
-
-        const extractedDates = extractDatesWithContext(text)
-
-        return NextResponse.json({
-            success: true,
-            dates_found: extractedDates.length,
-            extracted_dates: extractedDates,
-            error: null
-        })
 
     } catch (error) {
-        console.error('Processing error:', error)
+        console.error('Processing error:', error);
         return NextResponse.json(
-            { success: false, error: error.message }, 
+            { success: false, error: error.message },
             { status: 500 }
-        )
+        );
     }
 }
 
 function extractDatesWithContext(text) {
     try {
-        // Comprehensive date regex patterns
         const datePatterns = [
             // ISO: YYYY-MM-DD
             /\b\d{4}-\d{2}-\d{2}\b/g,
@@ -100,7 +117,7 @@ function extractDatesWithContext(text) {
             
             // DD Month YYYY
             /\b\d{1,2}\s+(?:January|February|March|April|May|June|July|August|September|October|November|December|Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\s+\d{4}\b/gi,
-        ]
+        ];
 
         const datesWithContext = [];
         
@@ -112,7 +129,6 @@ function extractDatesWithContext(text) {
                 const dateStr = match[0];
                 const position = match.index;
                 
-                // Extract context between proper boundaries
                 const description = extractContextBetweenBoundaries(text, position, 150);
                 const context = extractContextBetweenBoundaries(text, position, 80);
                 
@@ -135,7 +151,6 @@ function extractDatesWithContext(text) {
 function extractContextBetweenBoundaries(text, position, maxLength = 200) {
     const boundaries = ['.', '!', '?', ';', '\n'];
     
-    // Find start boundary
     let start = position;
     while (start > 0 && (position - start) < maxLength/2) {
         if (boundaries.includes(text[start])) {
@@ -146,7 +161,6 @@ function extractContextBetweenBoundaries(text, position, maxLength = 200) {
     }
     start = Math.max(0, start);
     
-    // Find end boundary  
     let end = position;
     while (end < text.length && (end - position) < maxLength/2) {
         if (boundaries.includes(text[end])) {
@@ -156,36 +170,6 @@ function extractContextBetweenBoundaries(text, position, maxLength = 200) {
     }
     
     return text.substring(start, end).trim().replace(/\s+/g, ' ');
-}
-
-function findSentenceStart(text, position) {
-    // Look backwards for sentence boundaries
-    const boundaries = ['.', '!', '?', '\n'];
-    let start = position;
-    
-    while (start > 0) {
-        if (boundaries.includes(text[start])) {
-            return start + 1; // Start after the boundary
-        }
-        start--;
-    }
-    
-    return 0; // Beginning of text
-}
-
-function findSentenceEnd(text, position) {
-    // Look forwards for sentence boundaries
-    const boundaries = ['.', '!', '?', '\n'];
-    let end = position;
-    
-    while (end < text.length) {
-        if (boundaries.includes(text[end])) {
-            return end + 1; // Include the boundary
-        }
-        end++;
-    }
-    
-    return text.length; // End of text
 }
 
 function removeDuplicateDates(datesArray) {
