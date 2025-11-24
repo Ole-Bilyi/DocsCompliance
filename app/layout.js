@@ -28,7 +28,17 @@ export default function RootLayout({ children }) {
         <Script
           id="brevo-init"
           strategy="afterInteractive"
-          src="/api/brevo-init"
+          dangerouslySetInnerHTML={{
+            __html: `
+              window.Brevo = window.Brevo || [];
+              Brevo.push([
+                "init",
+                {
+                  client_key: "${process.env.NEXT_PUBLIC_BREVO_CLIENT_KEY}",
+                }
+              ]);
+            `,
+          }}
         />
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
