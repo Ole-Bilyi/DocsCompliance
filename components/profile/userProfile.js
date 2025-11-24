@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import "../styles/ProfileCard.scss";
-import UserProfile from "../../app/session/UserProfile";
+import UserProfile from "@/app/session/UserProfile";
 
 // placeholder activity until we fetch real timeline
 

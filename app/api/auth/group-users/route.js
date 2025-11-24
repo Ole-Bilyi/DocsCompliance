@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { getGroupUsers } from '../../../../lib/auth'
+import { getGroupUsers } from '@/lib/auth'
 import { getSession } from '@/lib/session'
 
 export async function POST(request) {

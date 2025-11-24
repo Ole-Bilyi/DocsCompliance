@@ -1,7 +1,7 @@
 'use client'
 import React, { useState, useEffect } from "react"
 import "../styles/MainPage.scss"
-//import UserProfile from "../../app/session/UserProfile"
+//import UserProfile from "@/app/session/UserProfile"
 import Link from "next/link"
 import { useUserProfile } from '../context/UserProfileContext'
 

@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { setConMetadata } from '../../../../lib/contracts'
+import { setConMetadata } from '@/lib/contracts'
 import { getSession } from '@/lib/session'
 
 export async function POST(request) {

@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { uploadFile } from '../../../../lib/contracts'
+import { uploadFile } from '@/lib/contracts'
 import { getSession } from '@/lib/session'
 
 export async function POST(request) {

@@ -1,8 +1,8 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import UserProfile from '../../app/session/UserProfile';
-import '../../components/styles/Contracts.scss';
+import UserProfile from '@/app/session/UserProfile';
+import '@/components/styles/Contracts.scss';
 
 export default function Contracts() {
   const [contracts, setContracts] = useState([]);

@@ -2,7 +2,7 @@
 import Mstyle from "../styles/group.module.css";
 import Link from 'next/link';
 import { useState } from "react";
-import UserProfile from '../../app/session/UserProfile';
+import UserProfile from '@/app/session/UserProfile';
 import { useRouter } from "next/navigation";
 
 export default function Create() {

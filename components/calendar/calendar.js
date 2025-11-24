@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import '../styles/Calendar.scss';
-import UserProfile from '../../app/session/UserProfile';
+import UserProfile from '@/app/session/UserProfile';
 import { normalizeDeadlineDays } from '@/lib/dates';
 
 const MONTH_NAMES = [

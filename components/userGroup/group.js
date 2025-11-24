@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import styles from "../styles/group.module.scss";
-import UserProfile from '../../app/session/UserProfile';
+import UserProfile from '@/app/session/UserProfile';
 
 const toPlainText = (value, fallback = '') => {
   if (!value) return fallback;

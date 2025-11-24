@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { createDate } from '../../../../lib/dates'
+import { createDate } from '@/lib/dates'
 import { getSession } from '@/lib/session'
 
 export async function POST(request) {

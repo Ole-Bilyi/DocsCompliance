@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { createConDates } from '../../../../lib/contracts'
+import { createConDates } from '@/lib/contracts'
 import { getSession } from '@/lib/session'
 
 export async function POST(request) {

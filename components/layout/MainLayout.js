@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { useRouter, usePathname } from 'next/navigation';
-import UserProfile from '../../app/session/UserProfile';
+import UserProfile from '@/app/session/UserProfile';
 import Link from 'next/link';
 import "../styles/MainLayout.scss";
 

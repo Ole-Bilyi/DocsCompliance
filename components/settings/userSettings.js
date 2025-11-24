@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import "../styles/Settings.scss";
-import UserProfile from "../../app/session/UserProfile";
+import UserProfile from "@/app/session/UserProfile";
 
 export default function UserSettings() {
   const [themePreference, setThemePreference] = useState("system");

@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { getRequests } from '../../../../lib/group'
+import { getRequests } from '@/lib/group'
 import { getSession } from '@/lib/session'
 
 export async function POST(request) {
