@@ -11,10 +11,9 @@ let UserProfile = (function() {
   const syncWithServer = async (retryCount = 3) => {
     try {
       const res = await fetch('/api/auth/user', {
-        credentials: 'include', // Ensure cookies are sent
-        cache: 'no-store' // Prevent caching
-      });
-      
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+        });
       if (!res.ok) {
         throw new Error(`HTTP error! status: ${res.status}`);
       }

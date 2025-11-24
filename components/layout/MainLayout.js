@@ -21,60 +21,108 @@ const MainLayout = ({ children }) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isDesktop, setIsDesktop] = useState(false);
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
+  const [hasIdentifiedBrevo, setHasIdentifiedBrevo] = useState(false);
 
   const [displayName, setDisplayName] = useState("Loading…");
   const [groupName, setGroupName] = useState("Workspace");
   const [email, setEmail] = useState('—');
   const [showProfile, setShowProfile] = useState(false);
 
+  const identifyBrevoUser = async () => {
+    if (hasIdentifiedBrevo) return;
+    
+    try {
+      const res = await fetch('/api/brevo/identify-user', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      });
+      
+      // ✅ FIXED: Check if response has content before parsing JSON
+      if (!res.ok) {
+        console.error('Brevo API returned error status:', res.status, res.statusText);
+        return;
+      }
+      
+      const contentType = res.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/json')) {
+        console.error('Brevo API returned non-JSON response:', contentType);
+        return;
+      }
+      
+      const text = await res.text();
+      if (!text) {
+        console.error('Brevo API returned empty response');
+        return;
+      }
+      
+      try {
+        const result = JSON.parse(text);
+        
+        if (result.success) {
+          console.log('User identified in Brevo successfully');
+          setHasIdentifiedBrevo(true);
+        } else {
+          console.error('Failed to identify user in Brevo:', result.error);
+        }
+      } catch (parseError) {
+        console.error('Failed to parse Brevo response JSON:', parseError, 'Response text:', text);
+      }
+    } catch (error) {
+      console.error('Error calling Brevo identify:', error);
+    }
+  };
+
   // Centralized auth check for pages that use MainLayout
   useEffect(() => {
     const checkAuth = async () => {
-        setIsCheckingAuth(true);
-        
-        try {
-          // Sync with server first to get current session
-          await UserProfile.syncWithServer();
+      setIsCheckingAuth(true);
+      
+      try {
+        // Sync with server first to get current session
+        await UserProfile.syncWithServer();
 
-          const currentEmail = UserProfile.getEmail();
-          if (!currentEmail) {
-            router.push('/login');
-            return;
-          }
+        const currentEmail = UserProfile.getEmail();
+        if (!currentEmail) {
+          router.push('/login');
+          return;
+        }
 
-          const res = await fetch('/api/auth/check', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email: currentEmail }),
-          });
+        const res = await fetch('/api/auth/check', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: currentEmail }),
+        });
 
-          const authData = await res.json();
-          if (!authData.authenticated) {
-            UserProfile.clearSession();
-            router.push('/login');
-            return;
-          }
-
-          if (!authData.hasGroup) {
-            router.push('/join');
-            return;
-          }
-
-          // Update profile data after successful auth
-          setDisplayName(UserProfile.getName() || UserProfile.getEmail() || "User");
-          setGroupName(UserProfile.getGName() || "Workspace");
-          setEmail(UserProfile.getEmail() || '—');
-          
-        } catch (error) {
-          console.error('Auth check failed (MainLayout):', error);
+        const authData = await res.json();
+        if (!authData.authenticated) {
           UserProfile.clearSession();
           router.push('/login');
-        } finally {
-          setIsCheckingAuth(false);
+          return;
         }
-      };    
+
+        if (!authData.hasGroup) {
+          router.push('/join');
+          return;
+        }
+
+        // Update profile data after successful auth
+        setDisplayName(UserProfile.getName() || UserProfile.getEmail() || "User");
+        setGroupName(UserProfile.getGName() || "Workspace");
+        setEmail(UserProfile.getEmail() || '—');
+        
+        //Call brevo only when auth is successful
+        await identifyBrevoUser();
+        
+      } catch (error) {
+        console.error('Auth check failed (MainLayout):', error);
+        UserProfile.clearSession();
+        router.push('/login');
+      } finally {
+        setIsCheckingAuth(false);
+      }
+    };    
     checkAuth();
-  }, [router, pathname]);
+  }, [router]); //Removed pathname dependency to prevent re-runs on navigation
 
   // Update display name and group name when profile changes
   useEffect(() => {
@@ -95,7 +143,6 @@ const MainLayout = ({ children }) => {
     };
   }, []);
 
-  // Rest of your component remains the same...
   useEffect(() => {
     if (typeof window === "undefined") return;
 

@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
 import { getSession } from '@/lib/session';
 
-export async function GET(request) {
+export async function POST(request) {
+  try {
   const session = await getSession();
   const user = session.user;
 
@@ -14,5 +15,12 @@ export async function GET(request) {
     return NextResponse.json({
       isLoggedIn: false,
     });
+  }
+  } catch (error) {
+    console.error('Error in /api/auth/user:', error);
+    return NextResponse.json(
+      { success: false, error: 'Internal Server Error' },
+      { status: 500 }
+    );
   }
 }

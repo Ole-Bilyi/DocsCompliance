@@ -41,14 +41,13 @@ export async function POST(request) {
       console.warn('Failed to get deadline counts, using defaults:', daysResult.error);
     }
 
-    // Extract first and last name safely
-    const userName = session.user.name || '';
+    const firstName = session.user.name || '';
 
     // Prepare Brevo contact data
     const brevoContactData = {
       email: userEmail,
       attributes: {
-        FIRSTNAME: userName,
+        FIRSTNAME: firstName,
         DEADLINE_COUNT: deadlineDays,
         OVERDUE_COUNT: overdueDays,
         LAST_SYNC: new Date().toISOString(),
@@ -56,24 +55,46 @@ export async function POST(request) {
       updateEnabled: true
     };
 
-    // Call Brevo API
+    console.log('Sending to Brevo:', { email: userEmail, deadlineDays, overdueDays });
+
+    // Call Brevo API with timeout and better error handling
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+
     const brevoResponse = await fetch('https://api.brevo.com/v3/contacts', {
       method: 'POST',
       headers: {
         'api-key': process.env.BREVO_API_KEY,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(brevoContactData)
+      body: JSON.stringify(brevoContactData),
+      signal: controller.signal
     });
 
-    const responseData = await brevoResponse.json();
+    clearTimeout(timeoutId);
 
-    if (!brevoResponse.ok) {
-      console.error('Brevo API error response:', responseData);
-      throw new Error(`Brevo API error: ${responseData.message || 'Unknown error'}`);
+    // ✅ FIXED: Handle empty or non-JSON responses
+    let responseData;
+    const responseText = await brevoResponse.text();
+    
+    try {
+      responseData = responseText ? JSON.parse(responseText) : {};
+    } catch (parseError) {
+      console.error('Failed to parse Brevo response as JSON:', responseText);
+      responseData = { message: 'Invalid JSON response' };
     }
 
-    console.log(`Brevo user sync successful for ${userEmail}: ${deadlineDays} deadlines, ${overdueDays} overdue`);
+    if (!brevoResponse.ok) {
+      console.error('Brevo API error:', {
+        status: brevoResponse.status,
+        statusText: brevoResponse.statusText,
+        response: responseData
+      });
+      
+      throw new Error(`Brevo API error (${brevoResponse.status}): ${responseData.message || brevoResponse.statusText}`);
+    }
+
+    console.log(`Brevo user sync successful for ${userEmail}`);
 
     return NextResponse.json({
       success: true,
@@ -82,15 +103,24 @@ export async function POST(request) {
         deadlineDays, 
         overdueDays 
       },
-      brevoId: responseData.id // Brevo contact ID if needed
+      brevoId: responseData.id
     });
 
   } catch (error) {
     console.error('Brevo identify error:', error);
+    
+    // Handle specific error types
+    let errorMessage = error.message;
+    if (error.name === 'AbortError') {
+      errorMessage = 'Brevo API request timeout';
+    } else if (error.message.includes('Failed to fetch')) {
+      errorMessage = 'Network error - cannot reach Brevo API';
+    }
+
     return NextResponse.json(
       { 
         success: false, 
-        error: error.message || 'Failed to identify user in Brevo'
+        error: errorMessage
       },
       { status: 500 }
     );
