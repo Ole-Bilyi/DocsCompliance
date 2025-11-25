@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { remoeveUserFromGroup } from '@/lib/group'
+import { removeUserFromGroup } from '@/lib/group'
 import { getSession } from '@/lib/session'
 
 export async function POST(request) {
@@ -16,7 +16,7 @@ export async function POST(request) {
       return NextResponse.json({ success: false, error: 'userEmail is required' }, { status: 400 })
     }
 
-    await remoeveUserFromGroup(userEmail, user.email)
+    await removeUserFromGroup(userEmail, user.email)
     return NextResponse.json({ success: true, error: null })
   } catch (error) {
     console.error('joinGroup error:', error)
