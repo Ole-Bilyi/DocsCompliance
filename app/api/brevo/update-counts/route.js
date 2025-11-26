@@ -1,6 +1,6 @@
 import { updateAllContactDeadlineCounts } from "@/lib/dates";
 
-export async function GET(request) {
+export async function POST(request) {
   try {
     // Get the search params from the URL
     const { searchParams } = new URL(request.url);
@@ -14,7 +14,13 @@ export async function GET(request) {
     }
 
     // Update contact data
-    await updateAllContactDeadlineCounts();
+    const updateData = await updateAllContactDeadlineCounts();
+    if (!updateData.success) {
+      throw new Error('Failed to update contact counts, error: ' + updateData.error);
+    }
+    if (!updateData.data) {
+      throw new Error('No data returned from updateAllContactDeadlineCounts');
+    }
 
     return Response.json({ 
       success: true, 
