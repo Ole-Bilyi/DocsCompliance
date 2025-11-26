@@ -45,7 +45,7 @@ export async function POST(request) {
                 text = await downloadData.text();
                 if (!text || text.trim().length < 19) {
                     // Fallback to PDFParse if native text extraction fails
-                    const PDFParse = require('pdf-parse');
+                    const PDFParse = require('pdf-parse-new');
                     const buffer = Buffer.from(arrayBuffer);
                     const data = await PDFParse(buffer);
                     text = data.text;
