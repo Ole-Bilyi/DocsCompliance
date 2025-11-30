@@ -14,7 +14,7 @@ export default function UserSettings() {
   const [newTrustedUserEmail, setNewTrustedUserEmail] = useState("");
   const [error, setError] = useState(null);
 
-  // ✅ OPTIMIZED: Theme application with useCallback (defined first)
+  // ✅ OPTIMIZED: Theme application with useCallback
   const applyTheme = useCallback((theme) => {
     try {
       const root = document.documentElement;
@@ -91,17 +91,14 @@ export default function UserSettings() {
   const handleThemeChange = useCallback((newTheme) => {
     setThemePreference(newTheme);
     
-    // Save to localStorage
     try {
       localStorage.setItem('docscompliance_theme', newTheme);
     } catch (e) {
       console.error('save theme', e);
     }
     
-    // Apply theme immediately
     applyTheme(newTheme);
     
-    // Show success message
     setMessage("Theme updated");
     setTimeout(() => setMessage(null), 2000);
   }, [applyTheme]);
@@ -117,10 +114,9 @@ export default function UserSettings() {
     if (isAdmin) {
       fetchTrustedUsers();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAdmin]);
 
-  // ✅ SIMPLIFIED: Load theme once on mount
+  // ✅ Load theme once on mount
   useEffect(() => {
     try {
       const storedTheme = localStorage.getItem('docscompliance_theme');
