@@ -3,8 +3,10 @@
 import React, { useState, useEffect } from "react";
 import "../styles/SubscriptionBlocker.scss";
 import UserProfile from "@/app/session/UserProfile";
+import { useRouter } from "next/navigation";
 
 export default function SubscriptionBlocker({ children }) {
+  const router = useRouter();
   const [hasAccess, setHasAccess] = useState(true);
   const [loading, setLoading] = useState(true);
   const [subscriptionInfo, setSubscriptionInfo] = useState(null);
@@ -15,9 +17,19 @@ export default function SubscriptionBlocker({ children }) {
 
   const checkSubscription = async () => {
     try {
+      // ✅ Check cached subscription access first
+      const cachedAccess = UserProfile.getSubscriptionAccess();
+      if (cachedAccess !== null) {
+        console.log('✅ Using cached subscription access:', cachedAccess);
+        setHasAccess(cachedAccess);
+        setLoading(false);
+        return;
+      }
+
       const email = UserProfile.getEmail();
       if (!email) {
         setHasAccess(false);
+        UserProfile.setSubscriptionAccess(false); // ✅ Cache the result
         setLoading(false);
         return;
       }
@@ -27,11 +39,14 @@ export default function SubscriptionBlocker({ children }) {
         headers: { 'Content-Type': 'application/json' }
       });
       const result = await res.json();
-      console.log('Subscription access result:', result);
+      
       if (result.success) {
+        // ✅ Cache the subscription access result
+        UserProfile.setSubscriptionAccess(result.access);
         setHasAccess(result.access);
+        
         if (!result.access) {
-          // Get subscription info for display
+          // Get subscription info for display (don't cache this as it might change)
           const subRes = await fetch('/api/subscription/get', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' }
@@ -43,10 +58,12 @@ export default function SubscriptionBlocker({ children }) {
         }
       } else {
         setHasAccess(false);
+        UserProfile.setSubscriptionAccess(false); // ✅ Cache the result
       }
     } catch (e) {
       console.error('Failed to check subscription:', e);
       setHasAccess(false);
+      UserProfile.setSubscriptionAccess(false); // ✅ Cache the result
     } finally {
       setLoading(false);
     }
@@ -59,8 +76,7 @@ export default function SubscriptionBlocker({ children }) {
       </div>
     );
   }
-  console.log('Subscription Info:', subscriptionInfo);
-  console.log('Has Access:', hasAccess);
+  
   if (!hasAccess) {
     return (
       <div className="subscription-blocker">
@@ -90,8 +106,12 @@ export default function SubscriptionBlocker({ children }) {
             <button 
               className="subscription-blocker__button"
               onClick={() => {
-                // In a real app, this would redirect to a payment page
-                alert('Please contact your administrator to upgrade your subscription.');
+                if(UserProfile.getAdmin()) {
+                  router.push('/billing');
+                  return;
+                } else{
+                  alert('Please contact your administrator to upgrade your subscription.');
+                }
               }}
             >
               Upgrade Now
@@ -110,4 +130,3 @@ export default function SubscriptionBlocker({ children }) {
 
   return <>{children}</>;
 }
-

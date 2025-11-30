@@ -177,6 +177,9 @@ const MainLayout = ({ children }) => {
     setIsSidebarOpen(false);
   };
 
+  const cachedAccess = UserProfile.getSubscriptionAccess();
+  console.log('MainLayout cached subscription access:', cachedAccess);
+
   // Show loading while checking authentication
   if (isCheckingAuth) {
     return (
@@ -304,9 +307,13 @@ const MainLayout = ({ children }) => {
         </header>
 
         <main className="content">
-          <SubscriptionBlocker>
-            {children}
-          </SubscriptionBlocker>
+          {cachedAccess!==null ? (
+            <SubscriptionBlocker>
+              {children}
+            </SubscriptionBlocker>
+          ) : (
+            <>{children}</>
+          )}
         </main>
       </div>
     </div>

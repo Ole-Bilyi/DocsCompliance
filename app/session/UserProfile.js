@@ -26,6 +26,10 @@ let UserProfile = (function() {
         user_email = data.email || "";
         adminD = data.admin || false;
         isLoggedIn = true;
+        
+        // ✅ Reset subscription access on new session
+        setSubscriptionAccess(null);
+        
         return { success: true, user: data };
       } else {
         clearSession();
@@ -72,9 +76,10 @@ let UserProfile = (function() {
     user_email = "";
     adminD = false;
     isLoggedIn = false;
-    // Clear Brevo identification status from sessionStorage
+    // Clear all session storage
     if (typeof window !== 'undefined') {
       sessionStorage.removeItem('brevo_identified');
+      sessionStorage.removeItem('subscription_access');
     }
   };
 
@@ -89,6 +94,34 @@ let UserProfile = (function() {
       return sessionStorage.getItem('brevo_identified') === 'true';
     }
     return false;
+  };
+
+  // ✅ NEW: Subscription access methods
+  let setSubscriptionAccess = function(access) {
+    if (typeof window !== 'undefined') {
+      if (access === null) {
+        sessionStorage.removeItem('subscription_access');
+      } else {
+        sessionStorage.setItem('subscription_access', JSON.stringify({
+          access: access
+        }));
+      }
+    }
+  };
+
+  let getSubscriptionAccess = function() {
+    if (typeof window !== 'undefined') {
+      const stored = sessionStorage.getItem('subscription_access');
+      if (stored) {
+        try {
+          const data = JSON.parse(stored);
+          return data.access;
+        } catch (e) {
+          console.error('Error parsing subscription access:', e);
+        }
+      }
+    }
+    return null; // No valid cached data
   };
 
   let logout = async function() {
@@ -114,7 +147,9 @@ let UserProfile = (function() {
     clearSession: clearSession,
     logout: logout,
     setBrevoIdentified: setBrevoIdentified,
-    getBrevoIdentified: getBrevoIdentified
+    getBrevoIdentified: getBrevoIdentified,
+    setSubscriptionAccess: setSubscriptionAccess, // ✅ NEW
+    getSubscriptionAccess: getSubscriptionAccess  // ✅ NEW
   }
 })();
 
