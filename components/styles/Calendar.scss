@@ -542,6 +542,149 @@
   }
 }
 
+.event-modal__user-select {
+  position: relative;
+  width: 100%;
+}
+
+.event-modal__user-select-trigger {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 0.5rem;
+  font-size: 0.95rem;
+  font-family: inherit;
+  transition: border-color 0.2s;
+  background: white;
+  color: #1e293b;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  min-height: 3rem;
+
+  @media (prefers-color-scheme: dark) {
+    background: rgba(30, 41, 59, 0.8);
+    border-color: rgba(148, 163, 184, 0.2);
+    color: #f8fafc;
+  }
+
+  &:focus-within {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  }
+}
+
+.event-modal__user-select-display {
+  flex: 1;
+  text-align: left;
+}
+
+.event-modal__user-select-name {
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: #1e293b;
+  margin-bottom: 0.25rem;
+
+  @media (prefers-color-scheme: dark) {
+    color: #f8fafc;
+  }
+}
+
+.event-modal__user-select-email {
+  font-size: 0.8rem;
+  color: #64748b;
+  font-weight: 400;
+
+  @media (prefers-color-scheme: dark) {
+    color: #94a3b8;
+  }
+}
+
+.event-modal__user-select-arrow {
+  color: #64748b;
+  font-size: 0.75rem;
+  margin-left: 0.5rem;
+  transition: transform 0.2s;
+
+  @media (prefers-color-scheme: dark) {
+    color: #94a3b8;
+  }
+}
+
+.event-modal__user-select-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  margin-top: 0.25rem;
+  background: white;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 0.5rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  max-height: 200px;
+  overflow-y: auto;
+  z-index: 1000;
+
+  @media (prefers-color-scheme: dark) {
+    background: rgba(23, 32, 55, 0.98);
+    border-color: rgba(148, 163, 184, 0.2);
+  }
+}
+
+.event-modal__user-select-option {
+  padding: 0.75rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+
+  @media (prefers-color-scheme: dark) {
+    border-bottom-color: rgba(148, 163, 184, 0.1);
+  }
+
+  &:last-child {
+    border-bottom: none;
+  }
+
+  &:hover {
+    background: #f1f5f9;
+
+    @media (prefers-color-scheme: dark) {
+      background: rgba(30, 41, 59, 0.8);
+    }
+  }
+
+  &--selected {
+    background: #dbeafe;
+
+    @media (prefers-color-scheme: dark) {
+      background: rgba(59, 130, 246, 0.2);
+    }
+  }
+
+  .event-modal__user-select-name {
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: #1e293b;
+    margin-bottom: 0.25rem;
+
+    @media (prefers-color-scheme: dark) {
+      color: #f8fafc;
+    }
+  }
+
+  .event-modal__user-select-email {
+    font-size: 0.8rem;
+    color: #64748b;
+    font-weight: 400;
+
+    @media (prefers-color-scheme: dark) {
+      color: #94a3b8;
+    }
+  }
+}
+
 .event-modal__colors {
   display: flex;
   gap: 0.75rem;

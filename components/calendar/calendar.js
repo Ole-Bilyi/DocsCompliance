@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import '../styles/Calendar.scss';
 import UserProfile from '@/app/session/UserProfile';
 import { normalizeDeadlineDays } from '@/lib/dates';
@@ -449,6 +449,25 @@ function EventModal({ date, event, onSave, onDelete, onClose, currentUserEmail, 
   const [description, setDescription] = useState(event?.description || '');
   const [assigned_to, setAssignedTo] = useState(event?.assigned_to || currentUserEmail || '');
   const [deadline_days, setDeadlineDays] = useState(event?.deadline_days || 7);
+  const [groupMembers, setGroupMembers] = useState([]);
+  const [loadingMembers, setLoadingMembers] = useState(false);
+  const [showDropdown, setShowDropdown] = useState(false);
+  const dropdownRef = useRef(null);
+
+  // Update state when event changes
+  useEffect(() => {
+    if (event) {
+      setName(event.name || '');
+      setDescription(event.description || '');
+      setAssignedTo(event.assigned_to || currentUserEmail || '');
+      setDeadlineDays(event.deadline_days || 7);
+    } else {
+      setName('');
+      setDescription('');
+      setAssignedTo(currentUserEmail || '');
+      setDeadlineDays(7);
+    }
+  }, [event, currentUserEmail]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -464,6 +483,56 @@ function EventModal({ date, event, onSave, onDelete, onClose, currentUserEmail, 
   };
 
   const canEditAssigned = isAdmin;
+
+  // Fetch group members when admin opens modal
+  useEffect(() => {
+    if (isAdmin && currentUserEmail) {
+      setLoadingMembers(true);
+      fetch('/api/auth/group-users', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: currentUserEmail })
+      })
+        .then(res => res.json())
+        .then(payload => {
+          if (payload.success && Array.isArray(payload.data)) {
+            const members = payload.data.map(u => ({
+              name: u.user_name || 'Unknown',
+              email: u.email || ''
+            }));
+            setGroupMembers(members);
+            // Set initial value if not set or if current assigned_to is not in members
+            if (members.length > 0) {
+              const currentAssignedExists = members.some(m => m.email === assigned_to);
+              if (!assigned_to || !currentAssignedExists) {
+                setAssignedTo(members[0].email);
+              }
+            }
+          }
+        })
+        .catch(e => {
+          console.error('Failed to fetch group members:', e);
+        })
+        .finally(() => {
+          setLoadingMembers(false);
+        });
+    }
+  }, [isAdmin, currentUserEmail]);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setShowDropdown(false);
+      }
+    };
+    if (showDropdown) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }
+  }, [showDropdown]);
+
+  const selectedMember = groupMembers.find(m => m.email === assigned_to) || (groupMembers.length > 0 ? groupMembers[0] : null);
 
   return (
     <div className="event-modal__overlay" onClick={onClose}>
@@ -508,15 +577,51 @@ function EventModal({ date, event, onSave, onDelete, onClose, currentUserEmail, 
 
           <div className="event-modal__field">
             <label>Assigned To</label>
-            <input
-              type="email"
-              value={assigned_to}
-              onChange={(e) => setAssignedTo(e.target.value)}
-              placeholder="user@example.com"
-              disabled={!canEditAssigned}
-              title={!canEditAssigned ? 'Only admins can change assignment' : ''}
-              required={isAdmin}
-            />
+            {isAdmin && groupMembers.length > 0 ? (
+              <div className="event-modal__user-select" ref={dropdownRef}>
+                <div
+                  className="event-modal__user-select-trigger"
+                  onClick={() => setShowDropdown(!showDropdown)}
+                >
+                  {selectedMember ? (
+                    <div className="event-modal__user-select-display">
+                      <div className="event-modal__user-select-name">{selectedMember.name}</div>
+                      <div className="event-modal__user-select-email">{selectedMember.email}</div>
+                    </div>
+                  ) : (
+                    <span>Select user...</span>
+                  )}
+                  <span className="event-modal__user-select-arrow">▼</span>
+                </div>
+                {showDropdown && (
+                  <div className="event-modal__user-select-dropdown">
+                    {groupMembers.map((member, idx) => (
+                      <div
+                        key={idx}
+                        className={`event-modal__user-select-option ${assigned_to === member.email ? 'event-modal__user-select-option--selected' : ''}`}
+                        onClick={() => {
+                          setAssignedTo(member.email);
+                          setShowDropdown(false);
+                        }}
+                      >
+                        <div className="event-modal__user-select-name">{member.name}</div>
+                        <div className="event-modal__user-select-email">{member.email}</div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ) : (
+              <input
+                type="email"
+                value={assigned_to}
+                onChange={(e) => setAssignedTo(e.target.value)}
+                placeholder={loadingMembers ? 'Loading members...' : 'user@example.com'}
+                disabled={!canEditAssigned || loadingMembers}
+                title={!canEditAssigned ? 'Only admins can change assignment' : ''}
+                required={isAdmin}
+              />
+            )}
           </div>
 
           <div className="event-modal__field">
