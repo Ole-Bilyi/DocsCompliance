@@ -191,54 +191,132 @@ export default function Contracts() {
 
   // Convert various human date formats into ISO yyyy-MM-dd or return null if unparseable
   function parseToISO(dateStr) {
-    if (!dateStr) return null
-    const s = String(dateStr).trim()
-    // already ISO
-    if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s
+  if (!dateStr) return null
+  const s = String(dateStr).trim()
+  
+  // already ISO
+  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s
 
-    // try YYYY/MM/DD or YYYY.MM.DD
-    const ymd = s.match(/^(\d{4})[-\/\.](\d{1,2})[-\/\.](\d{1,2})$/)
-    if (ymd) {
-      const y = Number(ymd[1])
-      const m = Number(ymd[2])
-      const d = Number(ymd[3])
-      if (m >= 1 && m <= 12 && d >= 1 && d <= 31) {
-        return `${y.toString().padStart(4,'0')}-${m.toString().padStart(2,'0')}-${d.toString().padStart(2,'0')}`
-      }
+  // try YYYY/MM/DD or YYYY.MM.DD
+  const ymd = s.match(/^(\d{4})[-\/\.](\d{1,2})[-\/\.](\d{1,2})$/)
+  if (ymd) {
+    const y = Number(ymd[1])
+    const m = Number(ymd[2])
+    const d = Number(ymd[3])
+    if (m >= 1 && m <= 12 && d >= 1 && d <= 31) {
+      return `${y.toString().padStart(4,'0')}-${m.toString().padStart(2,'0')}-${d.toString().padStart(2,'0')}`
     }
-
-    // try D/M/YYYY or M/D/YYYY or variants with 2-digit year
-    const dmy = s.match(/^(\d{1,2})[\/\-\. ](\d{1,2})[\/\-\. ](\d{2,4})$/)
-    if (dmy) {
-      let a = Number(dmy[1])
-      let b = Number(dmy[2])
-      let y = Number(dmy[3])
-      if (y < 100) y = 2000 + y
-
-      // decide order: if first > 12 then it's day-month-year; if second > 12 then month-day-year
-      let day, month
-      if (a > 12 && b <= 12) {
-        day = a; month = b
-      } else if (b > 12 && a <= 12) {
-        day = b; month = a
-      } else {
-        // both <=12 or both >12: prefer day-first (DD/MM/YYYY) as default locale
-        day = a; month = b
-      }
-
-      if (month >= 1 && month <= 12 && day >= 1 && day <= 31) {
-        return `${y.toString().padStart(4,'0')}-${month.toString().padStart(2,'0')}-${day.toString().padStart(2,'0')}`
-      }
-    }
-
-    // last-resort: try Date.parse
-    const parsed = new Date(s)
-    if (!isNaN(parsed.getTime())) {
-      return parsed.toISOString().slice(0,10)
-    }
-
-    return null
   }
+
+  // try D/M/YYYY or M/D/YYYY or variants with 2-digit year
+  const dmy = s.match(/^(\d{1,2})[\/\-\. ](\d{1,2})[\/\-\. ](\d{2,4})$/)
+  if (dmy) {
+    let a = Number(dmy[1])
+    let b = Number(dmy[2])
+    let y = Number(dmy[3])
+    if (y < 100) y = 2000 + y
+
+    // decide order: if first > 12 then it's day-month-year; if second > 12 then month-day-year
+    let day, month
+    if (a > 12 && b <= 12) {
+      day = a; month = b
+    } else if (b > 12 && a <= 12) {
+      day = b; month = a
+    } else {
+      // both <=12 or both >12: prefer day-first (DD/MM/YYYY) as default locale
+      day = a; month = b
+    }
+
+    if (month >= 1 && month <= 12 && day >= 1 && day <= 31) {
+      return `${y.toString().padStart(4,'0')}-${month.toString().padStart(2,'0')}-${day.toString().padStart(2,'0')}`
+    }
+  }
+
+  // Try to parse month names
+  const monthNames = [
+    'january', 'february', 'march', 'april', 'may', 'june',
+    'july', 'august', 'september', 'october', 'november', 'december',
+    'jan', 'feb', 'mar', 'apr', 'may', 'jun',
+    'jul', 'aug', 'sep', 'oct', 'nov', 'dec'
+  ];
+  
+  const monthMap = {
+    'january': 1, 'february': 2, 'march': 3, 'april': 4, 'may': 5, 'june': 6,
+    'july': 7, 'august': 8, 'september': 9, 'october': 10, 'november': 11, 'december': 12,
+    'jan': 1, 'feb': 2, 'mar': 3, 'apr': 4, 'may': 5, 'jun': 6,
+    'jul': 7, 'aug': 8, 'sep': 9, 'oct': 10, 'nov': 11, 'dec': 12
+  };
+  
+  // Match patterns like "26 November 2025", "November 26, 2025", "26-Nov-2025"
+  const monthPattern = new RegExp(`^(\\d{1,2})[\\s\\-\\.,]+(${monthNames.join('|')})[\\s\\-\\.,]+(\\d{2,4})$`, 'i');
+  const monthPattern2 = new RegExp(`^(${monthNames.join('|')})[\\s\\-\\.,]+(\\d{1,2})[\\s\\-\\.,]+(\\d{2,4})$`, 'i');
+  const monthPattern3 = new RegExp(`^(\\d{1,2})[\\/\\-](\\d{1,2})[\\/\\-](\\d{2,4})$`);
+  
+  let match = s.match(monthPattern);
+  if (match) {
+    const day = Number(match[1]);
+    const monthName = match[2].toLowerCase();
+    let year = Number(match[3]);
+    if (year < 100) year = 2000 + year;
+    
+    const month = monthMap[monthName];
+    if (month && day >= 1 && day <= 31) {
+      return `${year.toString().padStart(4,'0')}-${month.toString().padStart(2,'0')}-${day.toString().padStart(2,'0')}`;
+    }
+  }
+  
+  match = s.match(monthPattern2);
+  if (match) {
+    const monthName = match[1].toLowerCase();
+    const day = Number(match[2]);
+    let year = Number(match[3]);
+    if (year < 100) year = 2000 + year;
+    
+    const month = monthMap[monthName];
+    if (month && day >= 1 && day <= 31) {
+      return `${year.toString().padStart(4,'0')}-${month.toString().padStart(2,'0')}-${day.toString().padStart(2,'0')}`;
+    }
+  }
+  
+  match = s.match(monthPattern3);
+  if (match) {
+    const a = Number(match[1]);
+    const b = Number(match[2]);
+    let year = Number(match[3]);
+    if (year < 100) year = 2000 + year;
+    
+    // Try both day-month-year and month-day-year interpretations
+    // If first > 12, it's likely day
+    let day, month;
+    if (a > 12 && b <= 12) {
+      day = a; month = b;
+    } else if (b > 12 && a <= 12) {
+      day = b; month = a;
+    } else if (a <= 12 && b <= 12) {
+      // Both <= 12, assume DD/MM
+      day = a; month = b;
+    } else {
+      // Both > 12, invalid
+      day = 0; month = 0;
+    }
+    
+    if (month >= 1 && month <= 12 && day >= 1 && day <= 31) {
+      return `${year.toString().padStart(4,'0')}-${month.toString().padStart(2,'0')}-${day.toString().padStart(2,'0')}`;
+    }
+  }
+
+  // Last resort: use Date but handle timezone correctly
+  const parsed = new Date(s);
+  if (!isNaN(parsed.getTime())) {
+    // Get local date components to avoid timezone issues
+    const year = parsed.getFullYear();
+    const month = parsed.getMonth() + 1;
+    const day = parsed.getDate();
+    return `${year.toString().padStart(4,'0')}-${month.toString().padStart(2,'0')}-${day.toString().padStart(2,'0')}`;
+  }
+
+  return null
+}
 
   function updateMilestone(idx, key, value) {
     setMilestones(m => m.map((mm, i) => i === idx ? { ...mm, [key]: value } : mm));
