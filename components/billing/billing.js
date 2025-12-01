@@ -9,11 +9,18 @@ export default function Billing() {
     const router = useRouter()
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState('')
-    // Payment form state
-    const [cardNumber, setCardNumber] = useState('')
-    const [expiry, setExpiry] = useState('')
-    const [cvc, setCvc] = useState('')
-    const [cardName, setCardName] = useState('')
+    // Example payment data for demo validation
+    const examplePaymentData = {
+        cardNumber: '4111 1111 1111 1111',
+        expiry: '12/25',
+        cvc: '123',
+        cardName: 'John Doe'
+    }
+    // Payment form state - pre-filled with example data for demo
+    const [cardNumber, setCardNumber] = useState(examplePaymentData.cardNumber)
+    const [expiry, setExpiry] = useState(examplePaymentData.expiry)
+    const [cvc, setCvc] = useState(examplePaymentData.cvc)
+    const [cardName, setCardName] = useState(examplePaymentData.cardName)
     const [fieldErrors, setFieldErrors] = useState({})
 
     const handlePayment = async () => {
@@ -28,11 +35,11 @@ export default function Billing() {
             // Simulate payment processing delay
             await new Promise(resolve => setTimeout(resolve, 1000))
 
-            // Payment success is determined by validations here (for demo)
-            const paymentSuccess = validation.isValid
+            // Check if payment data matches example data
+            const paymentSuccess = checkPaymentData({ cardNumber, expiry, cvc, cardName })
 
             if (!paymentSuccess) {
-                throw new Error('Payment failed due to invalid card data. Please check the highlighted fields.')
+                throw new Error('Payment failed. Please check your card details and try again.')
             }
 
             // Call subscription update API
@@ -65,6 +72,20 @@ export default function Billing() {
         } finally {
             setLoading(false)
         }
+    }
+
+    // Check if payment data matches example data
+    const checkPaymentData = ({ cardNumber, expiry, cvc, cardName }) => {
+        // Normalize card number by removing spaces
+        const normalizedCardNumber = cardNumber.replace(/\s/g, '')
+        const normalizedExampleCardNumber = examplePaymentData.cardNumber.replace(/\s/g, '')
+        
+        const isCardNumberValid = normalizedCardNumber === normalizedExampleCardNumber
+        const isExpiryValid = expiry === examplePaymentData.expiry
+        const isCvcValid = cvc === examplePaymentData.cvc
+        const isNameValid = cardName.toLowerCase() === examplePaymentData.cardName.toLowerCase()
+
+        return isCardNumberValid && isExpiryValid && isCvcValid && isNameValid
     }
 
     // Helpers for formatting / limiting inputs
@@ -192,39 +213,35 @@ export default function Billing() {
                 <p>Choose the plan that fits your team's needs</p>
             </div>
 
-            {error && (
-                <div className="billing-error">
-                    {error}
-                </div>
-            )}
+            
 
-                <div className={`billing-plan  billing-plan--selected`}>
-                    <div className="billing-plan__header">
-                        <h3>Premium</h3>
-                        <div className="billing-plan__price">
-                            <span className="billing-plan__amount">$29</span>
-                            <span className="billing-plan__period">/month</span>
-                        </div>
-                    </div>
-                    <div className="billing-plan__features">
-                        <div className="billing-plan__feature">
-                            <span className="billing-plan__check">✓</span>
-                            Unlimited contracts
-                        </div>
-                        <div className="billing-plan__feature">
-                            <span className="billing-plan__check">✓</span>
-                            Advanced date tracking
-                        </div>
-                        <div className="billing-plan__feature">
-                            <span className="billing-plan__check">✓</span>
-                            Team collaboration
-                        </div>
-                        <div className="billing-plan__feature">
-                            <span className="billing-plan__check">✓</span>
-                            Automated email reminders
-                        </div>
+            <div className={`billing-plan  billing-plan--selected`}>
+                <div className="billing-plan__header">
+                    <h3>Premium</h3>
+                    <div className="billing-plan__price">
+                        <span className="billing-plan__amount">$29</span>
+                        <span className="billing-plan__period">/month</span>
                     </div>
                 </div>
+                <div className="billing-plan__features">
+                    <div className="billing-plan__feature">
+                        <span className="billing-plan__check">✓</span>
+                        Unlimited contracts
+                    </div>
+                    <div className="billing-plan__feature">
+                        <span className="billing-plan__check">✓</span>
+                        Advanced date tracking
+                    </div>
+                    <div className="billing-plan__feature">
+                        <span className="billing-plan__check">✓</span>
+                        Team collaboration
+                    </div>
+                    <div className="billing-plan__feature">
+                        <span className="billing-plan__check">✓</span>
+                        Automated email reminders
+                    </div>
+                </div>
+            </div>
 
             <div className="billing-payment">
                 <div className="billing-payment__section">
@@ -301,9 +318,13 @@ export default function Billing() {
                 >
                     {loading ? 'Processing Payment...' : `Pay $29`}
                 </button>
-
+                {error && (
+                                <div className="billing-error">
+                                    {error}
+                                </div>
+                            )}
                 <p className="billing-payment__notice">
-                    This is a demo payment system. No real charges will be made.
+                    This is a demo payment system. Use card number: 4111 1111 1111 1111, Expiry: 12/25, CVC: 123, Name: John Doe
                 </p>
             </div>
         </div>
