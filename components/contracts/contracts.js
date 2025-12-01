@@ -491,7 +491,7 @@ export default function Contracts() {
                         <input type="checkbox" checked={selectedExtractedDates.has(idx)} onChange={() => toggleExtractedDate(idx)} style={{marginTop:'2px'}} />
                         <div style={{flex:1}}>
                           <div style={{fontWeight:'600', fontSize:'0.9rem'}}>{date.date}</div>
-                          <div style={{fontSize:'0.85rem', color:'var(--muted)', marginTop:'2px'}}>{date.description}</div>
+                          <div style={{fontSize:'0.85rem', color:'var(--foreground)', marginTop:'2px'}}>{date.description}</div>
                         </div>
                       </label>
                     ))}
