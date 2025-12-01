@@ -58,25 +58,28 @@ export default function Login() {
   return (
     <div className="auth-page">
       <section className="auth-hero">
-        <p className="auth-hero__eyebrow">Docs Compliance</p>
-        <h1>Stay ahead of every approval and renewal</h1>
+        <p className="auth-hero__eyebrow">DocsCompliance</p>
+        <h1>Streamline Your Contract Management Workflow</h1>
         <p>
-          Docs Compliance orchestrates reminders, consent workflows, and clause reviews so your
-          legal team can focus on the decisions that matter—not the busywork.
+          DocsCompliance is your all-in-one platform for managing document approvals, renewals, 
+          and compliance deadlines. Never miss a critical contract date again with automated 
+          tracking and intelligent reminders.
         </p>
         <p>
-          Pick up exactly where you left off. Your queue, pending signatures, and expiring contracts
-          are synced across all your devices.
+          Collaborate seamlessly with your team. Assign deadlines, track progress, and maintain 
+          complete visibility across all contracts and compliance requirements from a single dashboard.
         </p>
         <ul className="auth-hero__list">
-          <li>Automated nudges for expirations and reviews</li>
-          <li>Privacy-ready storage with full audit trails</li>
-          <li>Instant visibility into every team member’s workload</li>
+          <li>Smart deadline tracking with automated email reminders</li>
+          <li>Group-based collaboration with role-based permissions</li>
+          <li>Contract text extraction for automatic date discovery</li>
+          <li>Real-time calendar integration for upcoming deadlines</li>
+          <li>Secure document storage with version control</li>
         </ul>
         <div className="auth-hero__meta">
-          <span>All data encrypted at rest</span>
-          <span>Trusted by legal & compliance teams</span>
-          <span>99.9% uptime SLA</span>
+          <span>Secure Supabase backend with PostgreSQL</span>
+          <span>Built with Next.js 14 for optimal performance</span>
+          <span>Iron-session authentication for enhanced security</span>
         </div>
       </section>
 
