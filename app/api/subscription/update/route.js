@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { getSession } from '@/lib/session'
-import { updateSubscription } from '@/lib/subsciption';
+import { updateSubscription } from '@/lib/subscription';
 
 export async function POST(request) {
   try {

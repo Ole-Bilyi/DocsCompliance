@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { getSession } from '@/lib/session'
-import { subscriptionOfGroup } from '@/lib/subsciption';
+import { subscriptionOfGroup } from '@/lib/subscription';
 
 export async function POST(request) {
   try {
